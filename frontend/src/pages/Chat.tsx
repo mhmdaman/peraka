@@ -37,7 +37,7 @@ export default function Chat() {
     }).catch(console.error)
 
     // Connect socket
-    const s = io(import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000', {
+    const s = io(import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5001', {
       withCredentials: true
     })
 

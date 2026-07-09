@@ -92,38 +92,39 @@ exports.getById = async (req, res) => {
 
 exports.create = async (req, res) => {
   const { first_name, last_name, email, password, phone, date_of_birth, address,
-    job_title, department_id, manager_id, date_of_joining, role_id, salary_base } = req.body;
+    job_title, department_id, manager_id, date_of_joining, role_id } = req.body;
+
+  if (!password || password.trim().length < 6)
+    return res.status(400).json({ success: false, message: 'Password must be at least 6 characters' });
+
   try {
-    const hash = await bcrypt.hash(password || 'Employee@123', 10);
-    
+    const hash = await bcrypt.hash(password, 10);
+
     const newEmployee = await prisma.employee.create({
       data: {
         first_name,
         last_name,
         email,
         password_hash: hash,
-        phone,
+        phone: phone || null,
         date_of_birth: date_of_birth ? new Date(date_of_birth) : null,
-        address,
+        address: address || null,
         job_title,
         department_id: department_id ? parseInt(department_id) : null,
         manager_id: manager_id ? parseInt(manager_id) : null,
         date_of_joining: new Date(date_of_joining),
         role_id: parseInt(role_id),
-        salary_base: parseFloat(salary_base)
       }
     });
 
     // Seed default leave balances
-    const leaveBalances = [
-      { employee_id: newEmployee.id, type: 'sick', balance: 12 },
-      { employee_id: newEmployee.id, type: 'casual', balance: 12 },
-      { employee_id: newEmployee.id, type: 'paid', balance: 15 },
-      { employee_id: newEmployee.id, type: 'unpaid', balance: 0 }
-    ];
-
     await prisma.leaveBalance.createMany({
-      data: leaveBalances
+      data: [
+        { employee_id: newEmployee.id, type: 'sick',   balance: 12 },
+        { employee_id: newEmployee.id, type: 'casual', balance: 12 },
+        { employee_id: newEmployee.id, type: 'paid',   balance: 15 },
+        { employee_id: newEmployee.id, type: 'unpaid', balance: 0  },
+      ]
     });
 
     res.status(201).json({ success: true, message: 'Employee created', id: newEmployee.id });
@@ -135,22 +136,21 @@ exports.create = async (req, res) => {
 
 exports.update = async (req, res) => {
   const { first_name, last_name, phone, date_of_birth, address, job_title,
-    department_id, manager_id, date_of_joining, role_id, salary_base, status } = req.body;
+    department_id, manager_id, date_of_joining, role_id, status } = req.body;
   try {
     await prisma.employee.update({
       where: { id: parseInt(req.params.id) },
       data: {
         first_name,
         last_name,
-        phone,
+        phone: phone || null,
         date_of_birth: date_of_birth ? new Date(date_of_birth) : undefined,
-        address,
+        address: address || null,
         job_title,
         department_id: department_id ? parseInt(department_id) : null,
         manager_id: manager_id ? parseInt(manager_id) : null,
         date_of_joining: date_of_joining ? new Date(date_of_joining) : undefined,
         role_id: role_id ? parseInt(role_id) : undefined,
-        salary_base: salary_base ? parseFloat(salary_base) : undefined,
         status
       }
     });

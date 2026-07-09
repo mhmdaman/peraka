@@ -1,5 +1,5 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom'
-import { lazy, Suspense, ReactNode } from 'react'
+import { lazy, Suspense, type ReactNode } from 'react'
 import Layout from './components/Layout'
 import { useAuth } from './contexts/AuthContext'
 

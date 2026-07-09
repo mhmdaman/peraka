@@ -6,10 +6,15 @@ interface User {
   first_name: string
   last_name: string
   email: string
+  phone?: string
+  address?: string
   role: string
+  role_id?: number
   avatar?: string
   job_title: string
+  department_id?: number
   department_name?: string
+  salary_base?: number
   status: string
 }
 

@@ -21,6 +21,7 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    methods: ['GET', 'POST'],
     credentials: true,
   },
 });
@@ -78,7 +79,7 @@ app.use((err, req, res, _next) => {
   res.status(err.status || 500).json({ success: false, message: err.message || 'Internal Server Error' });
 });
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 server.listen(PORT, () => console.log(`🚀 Peraka API running on http://localhost:${PORT}`));
 
 module.exports = { io };

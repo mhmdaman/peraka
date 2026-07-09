@@ -9,14 +9,22 @@ const authenticate = async (req, res, next) => {
   const token = authHeader.split(' ')[1];
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const [rows] = await db.query(
-      'SELECT e.id, e.first_name, e.last_name, e.email, e.avatar, e.status, r.name as role FROM employees e JOIN roles r ON e.role_id = r.id WHERE e.id = ?',
-      [decoded.id]
-    );
-    if (!rows.length || rows[0].status !== 'active') {
+    const employee = await db.employee.findUnique({
+      where: { id: decoded.id },
+      include: { role: true },
+    });
+    if (!employee || employee.status !== 'active') {
       return res.status(401).json({ success: false, message: 'Account inactive or not found' });
     }
-    req.user = rows[0];
+    req.user = {
+      id: employee.id,
+      first_name: employee.first_name,
+      last_name: employee.last_name,
+      email: employee.email,
+      avatar: employee.avatar,
+      status: employee.status,
+      role: employee.role.name,
+    };
     next();
   } catch (err) {
     return res.status(401).json({ success: false, message: 'Invalid or expired token' });
