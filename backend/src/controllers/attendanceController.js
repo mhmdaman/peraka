@@ -1,80 +1,182 @@
-const db = require('../config/db');
+const prisma = require('../config/db');
 
 exports.checkIn = async (req, res) => {
   const { employee_id, verified_photo_path } = req.body;
-  const empId = employee_id || req.user.id;
-  const today = new Date().toISOString().slice(0, 10);
-  const now = new Date().toTimeString().slice(0, 8);
+  const empId = employee_id ? parseInt(employee_id) : parseInt(req.user.id);
+  
+  // Create a Date object for today at midnight UTC for the date field
+  const now = new Date();
+  const today = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+  
   try {
-    const [existing] = await db.query('SELECT id, check_out FROM attendance WHERE employee_id=? AND date=?', [empId, today]);
-    if (existing.length) return res.status(409).json({ success: false, message: 'Already checked in today' });
-    const checkInTime = now;
-    const [shift] = ['09:00:00'];
-    const status = checkInTime > '09:15:00' ? 'late' : 'present';
-    await db.query(
-      'INSERT INTO attendance (employee_id, date, check_in, status, verified_photo_path) VALUES (?,?,?,?,?)',
-      [empId, today, checkInTime, status, verified_photo_path || null]
-    );
+    const existing = await prisma.attendance.findFirst({
+      where: {
+        employee_id: empId,
+        date: today
+      }
+    });
+
+    if (existing) return res.status(409).json({ success: false, message: 'Already checked in today' });
+    
+    // Determine status (late if past 09:15 local time)
+    const hours = now.getHours();
+    const minutes = now.getMinutes();
+    const status = (hours > 9 || (hours === 9 && minutes > 15)) ? 'late' : 'present';
+
+    const attendance = await prisma.attendance.create({
+      data: {
+        employee_id: empId,
+        date: today,
+        check_in: now,
+        status,
+        verified_photo_path: verified_photo_path || null
+      }
+    });
+
+    // Format check_in for response
+    const checkInTime = now.toTimeString().slice(0, 8);
     res.json({ success: true, message: 'Checked in', check_in: checkInTime, status });
-  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+  } catch (err) { 
+    res.status(500).json({ success: false, message: err.message }); 
+  }
 };
 
 exports.checkOut = async (req, res) => {
-  const empId = req.user.id;
-  const today = new Date().toISOString().slice(0, 10);
-  const now = new Date().toTimeString().slice(0, 8);
+  const empId = parseInt(req.user.id);
+  
+  const now = new Date();
+  const today = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+
   try {
-    const [rows] = await db.query('SELECT * FROM attendance WHERE employee_id=? AND date=?', [empId, today]);
-    if (!rows.length) return res.status(404).json({ success: false, message: 'No check-in found for today' });
-    if (rows[0].check_out) return res.status(409).json({ success: false, message: 'Already checked out' });
-    const [h1, m1, s1] = rows[0].check_in.split(':').map(Number);
-    const [h2, m2, s2] = now.split(':').map(Number);
-    const hours = ((h2 * 3600 + m2 * 60 + s2) - (h1 * 3600 + m1 * 60 + s1)) / 3600;
-    await db.query('UPDATE attendance SET check_out=?, working_hours=? WHERE id=?', [now, hours.toFixed(2), rows[0].id]);
-    res.json({ success: true, message: 'Checked out', check_out: now, working_hours: hours.toFixed(2) });
-  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+    const record = await prisma.attendance.findFirst({
+      where: {
+        employee_id: empId,
+        date: today
+      }
+    });
+
+    if (!record) return res.status(404).json({ success: false, message: 'No check-in found for today' });
+    if (record.check_out) return res.status(409).json({ success: false, message: 'Already checked out' });
+
+    const checkInDate = new Date(record.check_in);
+    const diffMs = now.getTime() - checkInDate.getTime();
+    const diffHrs = diffMs / (1000 * 60 * 60);
+
+    await prisma.attendance.update({
+      where: { id: record.id },
+      data: {
+        check_out: now,
+        working_hours: diffHrs
+      }
+    });
+
+    const checkOutTime = now.toTimeString().slice(0, 8);
+    res.json({ success: true, message: 'Checked out', check_out: checkOutTime, working_hours: diffHrs.toFixed(2) });
+  } catch (err) { 
+    res.status(500).json({ success: false, message: err.message }); 
+  }
 };
 
 exports.getToday = async (req, res) => {
-  const empId = req.user.id;
-  const today = new Date().toISOString().slice(0, 10);
+  const empId = parseInt(req.user.id);
+  const now = new Date();
+  const today = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+
   try {
-    const [rows] = await db.query('SELECT * FROM attendance WHERE employee_id=? AND date=?', [empId, today]);
-    res.json({ success: true, data: rows[0] || null });
-  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+    const record = await prisma.attendance.findFirst({
+      where: {
+        employee_id: empId,
+        date: today
+      }
+    });
+    
+    res.json({ success: true, data: record || null });
+  } catch (err) { 
+    res.status(500).json({ success: false, message: err.message }); 
+  }
 };
 
 exports.getList = async (req, res) => {
   const { employee_id, month, year, status } = req.query;
-  // Employees can only see their own records
-  const empId = (req.user.role === 'employee') ? req.user.id : (employee_id || null);
+  const empId = (req.user.role === 'employee') ? parseInt(req.user.id) : (employee_id ? parseInt(employee_id) : undefined);
+  
   try {
-    let q = `SELECT a.*, CONCAT(e.first_name,' ',e.last_name) as employee_name
-             FROM attendance a JOIN employees e ON a.employee_id = e.id WHERE 1=1`;
-    const params = [];
-    if (empId) { q += ' AND a.employee_id = ?'; params.push(empId); }
-    if (month) { q += ' AND MONTH(a.date) = ?'; params.push(month); }
-    if (year) { q += ' AND YEAR(a.date) = ?'; params.push(year); }
-    if (status) { q += ' AND a.status = ?'; params.push(status); }
-    q += ' ORDER BY a.date DESC LIMIT 500';
-    const [rows] = await db.query(q, params);
-    res.json({ success: true, data: rows });
-  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+    const where = {};
+    if (empId) where.employee_id = empId;
+    if (status) where.status = status;
+    
+    if (month && year) {
+      const m = parseInt(month) - 1; // JS months are 0-indexed
+      const y = parseInt(year);
+      where.date = {
+        gte: new Date(Date.UTC(y, m, 1)),
+        lt: new Date(Date.UTC(y, m + 1, 1))
+      };
+    } else if (year) {
+      const y = parseInt(year);
+      where.date = {
+        gte: new Date(Date.UTC(y, 0, 1)),
+        lt: new Date(Date.UTC(y + 1, 0, 1))
+      };
+    } else if (month) {
+      // Month without year is tricky in Prisma without raw queries, skipping for brevity or we default to current year
+      const m = parseInt(month) - 1;
+      const y = new Date().getFullYear();
+      where.date = {
+        gte: new Date(Date.UTC(y, m, 1)),
+        lt: new Date(Date.UTC(y, m + 1, 1))
+      };
+    }
+
+    const records = await prisma.attendance.findMany({
+      where,
+      orderBy: { date: 'desc' },
+      take: 500,
+      include: { employee: true }
+    });
+
+    const data = records.map(r => ({
+      ...r,
+      employee_name: `${r.employee.first_name} ${r.employee.last_name}`
+    }));
+    
+    // Clean up employee object to match old flat structure
+    data.forEach(d => delete d.employee);
+
+    res.json({ success: true, data });
+  } catch (err) { 
+    res.status(500).json({ success: false, message: err.message }); 
+  }
 };
 
 exports.getStats = async (req, res) => {
   const { employee_id, month, year } = req.query;
-  const empId = employee_id || req.user.id;
-  const m = month || new Date().getMonth() + 1;
-  const y = year || new Date().getFullYear();
+  const empId = employee_id ? parseInt(employee_id) : parseInt(req.user.id);
+  const m = month ? parseInt(month) - 1 : new Date().getMonth();
+  const y = year ? parseInt(year) : new Date().getFullYear();
+
   try {
-    const [rows] = await db.query(
-      `SELECT status, COUNT(*) as count FROM attendance
-       WHERE employee_id=? AND MONTH(date)=? AND YEAR(date)=? GROUP BY status`,
-      [empId, m, y]
-    );
+    const groupResult = await prisma.attendance.groupBy({
+      by: ['status'],
+      where: {
+        employee_id: empId,
+        date: {
+          gte: new Date(Date.UTC(y, m, 1)),
+          lt: new Date(Date.UTC(y, m + 1, 1))
+        }
+      },
+      _count: {
+        status: true
+      }
+    });
+
     const stats = { present: 0, absent: 0, late: 0, 'half-day': 0, 'on-leave': 0 };
-    rows.forEach(r => { stats[r.status] = r.count; });
+    groupResult.forEach(r => {
+      stats[r.status] = r._count.status;
+    });
+
     res.json({ success: true, data: stats });
-  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+  } catch (err) { 
+    res.status(500).json({ success: false, message: err.message }); 
+  }
 };

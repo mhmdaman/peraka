@@ -1,35 +1,55 @@
-const db = require('../config/db');
+const prisma = require('../config/db');
 
 exports.getAll = async (req, res) => {
   try {
-    const [rows] = await db.query(
-      'SELECT * FROM notifications WHERE employee_id=? ORDER BY created_at DESC LIMIT 50',
-      [req.user.id]
-    );
-    res.json({ success: true, data: rows });
-  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+    const notifications = await prisma.notification.findMany({
+      where: { employee_id: parseInt(req.user.id) },
+      orderBy: { created_at: 'desc' },
+      take: 50
+    });
+    res.json({ success: true, data: notifications });
+  } catch (err) { 
+    res.status(500).json({ success: false, message: err.message }); 
+  }
 };
 
 exports.markRead = async (req, res) => {
   try {
-    await db.query('UPDATE notifications SET is_read=TRUE WHERE id=? AND employee_id=?', [req.params.id, req.user.id]);
+    await prisma.notification.updateMany({
+      where: {
+        id: parseInt(req.params.id),
+        employee_id: parseInt(req.user.id)
+      },
+      data: { is_read: true }
+    });
     res.json({ success: true });
-  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+  } catch (err) { 
+    res.status(500).json({ success: false, message: err.message }); 
+  }
 };
 
 exports.markAllRead = async (req, res) => {
   try {
-    await db.query('UPDATE notifications SET is_read=TRUE WHERE employee_id=?', [req.user.id]);
+    await prisma.notification.updateMany({
+      where: { employee_id: parseInt(req.user.id) },
+      data: { is_read: true }
+    });
     res.json({ success: true });
-  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+  } catch (err) { 
+    res.status(500).json({ success: false, message: err.message }); 
+  }
 };
 
 exports.getUnreadCount = async (req, res) => {
   try {
-    const [rows] = await db.query(
-      'SELECT COUNT(*) as count FROM notifications WHERE employee_id=? AND is_read=FALSE',
-      [req.user.id]
-    );
-    res.json({ success: true, count: rows[0].count });
-  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+    const count = await prisma.notification.count({
+      where: {
+        employee_id: parseInt(req.user.id),
+        is_read: false
+      }
+    });
+    res.json({ success: true, count });
+  } catch (err) { 
+    res.status(500).json({ success: false, message: err.message }); 
+  }
 };

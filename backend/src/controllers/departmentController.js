@@ -1,37 +1,67 @@
-const db = require('../config/db');
+const prisma = require('../config/db');
 
 exports.getAll = async (req, res) => {
   try {
-    const [rows] = await db.query(
-      `SELECT d.*, CONCAT(e.first_name,' ',e.last_name) as manager_name,
-              (SELECT COUNT(*) FROM employees WHERE department_id = d.id AND status='active') as employee_count
-       FROM departments d
-       LEFT JOIN employees e ON d.manager_id = e.id
-       ORDER BY d.name`
-    );
-    res.json({ success: true, data: rows });
-  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+    const departments = await prisma.department.findMany({
+      orderBy: { name: 'asc' },
+      include: {
+        manager: true,
+        _count: {
+          select: { employees: { where: { status: 'active' } } }
+        }
+      }
+    });
+
+    const data = departments.map(d => ({
+      ...d,
+      manager_name: d.manager ? `${d.manager.first_name} ${d.manager.last_name}` : null,
+      employee_count: d._count.employees
+    }));
+
+    // Don't send _count in the final response
+    data.forEach(d => delete d._count);
+
+    res.json({ success: true, data });
+  } catch (err) { 
+    res.status(500).json({ success: false, message: err.message }); 
+  }
 };
 
 exports.getById = async (req, res) => {
   try {
-    const [rows] = await db.query(
-      `SELECT d.*, CONCAT(e.first_name,' ',e.last_name) as manager_name
-       FROM departments d LEFT JOIN employees e ON d.manager_id = e.id WHERE d.id = ?`,
-      [req.params.id]
-    );
-    if (!rows.length) return res.status(404).json({ success: false, message: 'Not found' });
-    res.json({ success: true, data: rows[0] });
-  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+    const department = await prisma.department.findUnique({
+      where: { id: parseInt(req.params.id) },
+      include: {
+        manager: true
+      }
+    });
+
+    if (!department) return res.status(404).json({ success: false, message: 'Not found' });
+
+    const data = {
+      ...department,
+      manager_name: department.manager ? `${department.manager.first_name} ${department.manager.last_name}` : null
+    };
+
+    res.json({ success: true, data });
+  } catch (err) { 
+    res.status(500).json({ success: false, message: err.message }); 
+  }
 };
 
 exports.create = async (req, res) => {
   const { name, description, manager_id } = req.body;
   try {
-    const [result] = await db.query('INSERT INTO departments (name, description, manager_id) VALUES (?,?,?)', [name, description, manager_id]);
-    res.status(201).json({ success: true, id: result.insertId });
+    const newDept = await prisma.department.create({
+      data: {
+        name,
+        description,
+        manager_id: manager_id ? parseInt(manager_id) : null
+      }
+    });
+    res.status(201).json({ success: true, id: newDept.id });
   } catch (err) {
-    if (err.code === 'ER_DUP_ENTRY') return res.status(409).json({ success: false, message: 'Department already exists' });
+    if (err.code === 'P2002') return res.status(409).json({ success: false, message: 'Department already exists' });
     res.status(500).json({ success: false, message: err.message });
   }
 };
@@ -39,14 +69,27 @@ exports.create = async (req, res) => {
 exports.update = async (req, res) => {
   const { name, description, manager_id } = req.body;
   try {
-    await db.query('UPDATE departments SET name=?, description=?, manager_id=? WHERE id=?', [name, description, manager_id, req.params.id]);
+    await prisma.department.update({
+      where: { id: parseInt(req.params.id) },
+      data: {
+        name,
+        description,
+        manager_id: manager_id ? parseInt(manager_id) : null
+      }
+    });
     res.json({ success: true, message: 'Department updated' });
-  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+  } catch (err) { 
+    res.status(500).json({ success: false, message: err.message }); 
+  }
 };
 
 exports.delete = async (req, res) => {
   try {
-    await db.query('DELETE FROM departments WHERE id = ?', [req.params.id]);
+    await prisma.department.delete({
+      where: { id: parseInt(req.params.id) }
+    });
     res.json({ success: true, message: 'Department deleted' });
-  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+  } catch (err) { 
+    res.status(500).json({ success: false, message: err.message }); 
+  }
 };

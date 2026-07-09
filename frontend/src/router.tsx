@@ -1,5 +1,5 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom'
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, ReactNode } from 'react'
 import Layout from './components/Layout'
 import { useAuth } from './contexts/AuthContext'
 
@@ -22,14 +22,14 @@ const PageLoader = () => (
   </div>
 )
 
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+const ProtectedRoute = ({ children }: { children: ReactNode }) => {
   const { user, loading } = useAuth()
   if (loading) return <PageLoader />
   if (!user) return <Navigate to="/login" replace />
   return <>{children}</>
 }
 
-const PublicRoute = ({ children }: { children: React.ReactNode }) => {
+const PublicRoute = ({ children }: { children: ReactNode }) => {
   const { user, loading } = useAuth()
   if (loading) return <PageLoader />
   if (user) return <Navigate to="/" replace />

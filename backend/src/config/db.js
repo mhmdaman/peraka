@@ -1,25 +1,16 @@
-const mysql = require('mysql2');
+const { PrismaClient } = require('@prisma/client');
+const { Pool } = require('pg');
+const { PrismaPg } = require('@prisma/adapter-pg');
 
-const pool = mysql.createPool({
-  host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT || '3306'),
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'ems_db',
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-  timezone: '+00:00',
-});
+const connectionString = process.env.DATABASE_URL;
 
-// Test connection
-pool.getConnection((err, connection) => {
-  if (err) {
-    console.error('❌ MySQL connection failed:', err.message);
-    return;
-  }
-  console.log('✅ MySQL connected to', process.env.DB_NAME || 'ems_db');
-  connection.release();
-});
+const pool = new Pool({ connectionString });
+const adapter = new PrismaPg(pool);
+const prisma = new PrismaClient({ adapter });
 
-module.exports = pool.promise();
+// Optional: you can test connection manually if needed
+prisma.$connect()
+  .then(() => console.log('✅ Prisma connected to PostgreSQL (Supabase) via pg adapter'))
+  .catch((err) => console.error('❌ Prisma connection failed:', err.message));
+
+module.exports = prisma;

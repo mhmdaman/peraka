@@ -1,0 +1,232 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Role {
+  id          Int        @id @default(autoincrement())
+  name        String     @unique @db.VarChar(20)
+  description String?    @db.VarChar(255)
+  employees   Employee[]
+
+  @@map("roles")
+}
+
+model Department {
+  id          Int        @id @default(autoincrement())
+  name        String     @unique @db.VarChar(100)
+  description String?    @db.Text
+  manager_id  Int?
+  created_at  DateTime   @default(now())
+  updated_at  DateTime   @updatedAt
+  
+  manager     Employee?  @relation("DepartmentManager", fields: [manager_id], references: [id])
+  employees   Employee[] @relation("DepartmentEmployees")
+
+  @@map("departments")
+}
+
+model Employee {
+  id              Int        @id @default(autoincrement())
+  first_name      String     @db.VarChar(50)
+  last_name       String     @db.VarChar(50)
+  email           String     @unique @db.VarChar(100)
+  password_hash   String     @db.VarChar(255)
+  phone           String?    @db.VarChar(20)
+  date_of_birth   DateTime?  @db.Date
+  address         String?    @db.Text
+  avatar          String?    @db.VarChar(500)
+  job_title       String     @db.VarChar(100)
+  department_id   Int?
+  manager_id      Int?
+  date_of_joining DateTime   @db.Date
+  status          String     @default("active") // active, inactive, suspended
+  role_id         Int
+  salary_base     Decimal    @default(0.00) @db.Decimal(12, 2)
+  created_at      DateTime   @default(now())
+  updated_at      DateTime   @updatedAt
+
+  role            Role       @relation(fields: [role_id], references: [id])
+  department      Department? @relation("DepartmentEmployees", fields: [department_id], references: [id])
+  manager         Employee?  @relation("EmployeeToManager", fields: [manager_id], references: [id])
+  subordinates    Employee[] @relation("EmployeeToManager")
+  
+  managed_dept    Department[] @relation("DepartmentManager")
+
+  documents       Document[]
+  leave_balances  LeaveBalance[]
+  leaves          Leave[]
+  attendances     Attendance[]
+  payrolls        Payroll[]
+  
+  tasks_assigned  Task[] @relation("TasksAssignedTo")
+  tasks_created   Task[] @relation("TasksAssignedBy")
+  
+  announcements   Announcement[]
+  notifications   Notification[]
+  
+  chats_sent      Chat[] @relation("ChatSender")
+  chats_received  Chat[] @relation("ChatReceiver")
+  
+  audit_logs      AuditLog[]
+
+  @@map("employees")
+}
+
+model Document {
+  id          Int      @id @default(autoincrement())
+  employee_id Int
+  name        String   @db.VarChar(255)
+  file_path   String   @db.VarChar(500)
+  file_type   String   @db.VarChar(50)
+  uploaded_at DateTime @default(now())
+
+  employee    Employee @relation(fields: [employee_id], references: [id], onDelete: Cascade)
+
+  @@map("documents")
+}
+
+model LeaveBalance {
+  id          Int      @id @default(autoincrement())
+  employee_id Int
+  type        String   // sick, casual, paid, unpaid, maternity
+  balance     Int      @default(0)
+  updated_at  DateTime @updatedAt
+
+  employee    Employee @relation(fields: [employee_id], references: [id], onDelete: Cascade)
+
+  @@unique([employee_id, type])
+  @@map("leave_balances")
+}
+
+model Leave {
+  id              Int      @id @default(autoincrement())
+  employee_id     Int
+  type            String   // sick, casual, paid, unpaid, maternity
+  start_date      DateTime @db.Date
+  end_date        DateTime @db.Date
+  reason          String   @db.Text
+  status          String   @default("pending") // pending, approved, rejected
+  manager_comment String?  @db.Text
+  days            Int
+  created_at      DateTime @default(now())
+
+  employee        Employee @relation(fields: [employee_id], references: [id], onDelete: Cascade)
+
+  @@map("leaves_")
+}
+
+model Attendance {
+  id                  Int      @id @default(autoincrement())
+  employee_id         Int
+  date                DateTime @db.Date
+  check_in            DateTime @db.Time
+  check_out           DateTime? @db.Time
+  working_hours       Decimal? @db.Decimal(4, 2)
+  status              String   @default("present") // present, absent, late, half-day, on-leave
+  verified_photo_path String?  @db.VarChar(500)
+  created_at          DateTime @default(now())
+
+  employee            Employee @relation(fields: [employee_id], references: [id], onDelete: Cascade)
+
+  @@unique([employee_id, date])
+  @@map("attendance")
+}
+
+model Payroll {
+  id               Int       @id @default(autoincrement())
+  employee_id      Int
+  month            Int
+  year             Int
+  base_salary      Decimal   @db.Decimal(12, 2)
+  allowances       Decimal   @default(0.00) @db.Decimal(12, 2)
+  pf               Decimal   @default(0.00) @db.Decimal(12, 2)
+  tax              Decimal   @default(0.00) @db.Decimal(12, 2)
+  other_deductions Decimal   @default(0.00) @db.Decimal(12, 2)
+  net_salary       Decimal   @db.Decimal(12, 2)
+  bonus            Decimal   @default(0.00) @db.Decimal(12, 2)
+  status           String    @default("pending") // pending, paid
+  paid_at          DateTime?
+  payslip_path     String?   @db.VarChar(500)
+  created_at       DateTime  @default(now())
+
+  employee         Employee  @relation(fields: [employee_id], references: [id], onDelete: Cascade)
+
+  @@unique([employee_id, month, year])
+  @@map("payroll")
+}
+
+model Task {
+  id          Int      @id @default(autoincrement())
+  title       String   @db.VarChar(150)
+  description String?  @db.Text
+  assigned_to Int
+  assigned_by Int
+  priority    String   @default("medium") // low, medium, high, urgent
+  status      String   @default("pending") // pending, in-progress, completed, cancelled
+  due_date    DateTime @db.Date
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  assignee    Employee @relation("TasksAssignedTo", fields: [assigned_to], references: [id], onDelete: Cascade)
+  assigner    Employee @relation("TasksAssignedBy", fields: [assigned_by], references: [id], onDelete: Cascade)
+
+  @@map("tasks")
+}
+
+model Announcement {
+  id         Int      @id @default(autoincrement())
+  title      String   @db.VarChar(255)
+  content    String   @db.Text
+  created_by Int
+  created_at DateTime @default(now())
+
+  author     Employee @relation(fields: [created_by], references: [id], onDelete: Cascade)
+
+  @@map("announcements")
+}
+
+model Notification {
+  id          Int      @id @default(autoincrement())
+  employee_id Int
+  content     String   @db.Text
+  is_read     Boolean  @default(false)
+  type        String   @db.VarChar(50)
+  created_at  DateTime @default(now())
+
+  employee    Employee @relation(fields: [employee_id], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+model Chat {
+  id          Int      @id @default(autoincrement())
+  sender_id   Int
+  receiver_id Int
+  message     String   @db.Text
+  created_at  DateTime @default(now())
+
+  sender      Employee @relation("ChatSender", fields: [sender_id], references: [id], onDelete: Cascade)
+  receiver    Employee @relation("ChatReceiver", fields: [receiver_id], references: [id], onDelete: Cascade)
+
+  @@map("chats")
+}
+
+model AuditLog {
+  id          Int      @id @default(autoincrement())
+  user_id     Int?
+  action      String   @db.VarChar(100)
+  entity      String   @db.VarChar(100)
+  entity_id   Int?
+  old_values  Json?
+  new_values  Json?
+  ip_address  String?  @db.VarChar(45)
+  created_at  DateTime @default(now())
+
+  user        Employee? @relation(fields: [user_id], references: [id], onDelete: SetNull)
+
+  @@map("audit_logs")
+}
