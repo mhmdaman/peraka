@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Search, Plus, Filter, MoreVertical, X, Eye, EyeOff } from 'lucide-react'
 import api from '../lib/api'
+import { useAuth } from '../contexts/AuthContext'
 
 interface Employee {
   id: number
@@ -12,10 +13,12 @@ interface Employee {
   department_name: string
   status: string
   avatar: string | null
+  manager?: { first_name: string, last_name: string } | null
 }
 
 interface Role { id: number; name: string }
 interface Department { id: number; name: string }
+interface Manager { id: number; first_name: string; last_name: string }
 
 const defaultForm = {
   first_name: '',
@@ -53,6 +56,8 @@ const labelStyle: React.CSSProperties = {
 }
 
 export default function Employees() {
+  const { user } = useAuth()
+  const isAdmin = user?.role === 'admin'
   const [employees, setEmployees]     = useState<Employee[]>([])
   const [loading, setLoading]         = useState(true)
   const [search, setSearch]           = useState('')
@@ -62,6 +67,7 @@ export default function Employees() {
   const [error, setError]             = useState('')
   const [roles, setRoles]             = useState<Role[]>([])
   const [departments, setDepartments] = useState<Department[]>([])
+  const [managers, setManagers]       = useState<Manager[]>([])
   const [showPwd, setShowPwd]         = useState(false)
 
   const fetchEmployees = async () => {
@@ -69,6 +75,10 @@ export default function Employees() {
       setLoading(true)
       const res = await api.get('/employees')
       setEmployees(res.data.data)
+      
+      // Filter out managers to populate the dropdown
+      const mgrs = res.data.data.filter((e: any) => e.role_name === 'manager' || e.role_name === 'admin' || e.job_title?.toLowerCase().includes('manager'))
+      setManagers(mgrs)
     } catch (err) {
       console.error(err)
     } finally {
@@ -131,13 +141,15 @@ export default function Employees() {
           <h1 className="page-title">Employees</h1>
           <p className="page-subtitle">Manage your team members</p>
         </div>
-        <button
-          className="btn-primary"
-          onClick={() => setShowAddModal(true)}
-          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 0.875rem', borderRadius: 8, fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer', border: 'none' }}
-        >
-          <Plus size={15} /> Add Employee
-        </button>
+        {isAdmin && (
+          <button
+            className="btn-primary"
+            onClick={() => setShowAddModal(true)}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 0.875rem', borderRadius: 8, fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer', border: 'none' }}
+          >
+            <Plus size={15} /> Add Employee
+          </button>
+        )}
       </div>
 
       {/* Table card */}
@@ -171,7 +183,7 @@ export default function Employees() {
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--bg-surface)' }}>
-                  {['Employee', 'Job Title', 'Department', 'Status', ''].map(h => (
+                  {['Employee', 'Job Title', 'Department', 'Manager', 'Status', ''].map(h => (
                     <th key={h} style={{ padding: '0.75rem 1.25rem', textAlign: h === '' ? 'right' : 'left', fontSize: '0.7rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{h}</th>
                   ))}
                 </tr>
@@ -196,6 +208,9 @@ export default function Employees() {
                     </td>
                     <td style={{ padding: '0.875rem 1.25rem', color: 'var(--text-secondary)', fontSize: '0.875rem' }}>{emp.job_title}</td>
                     <td style={{ padding: '0.875rem 1.25rem', color: 'var(--text-muted)', fontSize: '0.875rem' }}>{emp.department_name || '—'}</td>
+                    <td style={{ padding: '0.875rem 1.25rem', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
+                      {emp.manager ? `${emp.manager.first_name} ${emp.manager.last_name}` : '—'}
+                    </td>
                     <td style={{ padding: '0.875rem 1.25rem' }}>
                       <span style={{
                         padding: '0.2rem 0.55rem', borderRadius: 999, fontSize: '0.7rem', fontWeight: 600, letterSpacing: '0.02em',
@@ -214,7 +229,7 @@ export default function Employees() {
                 ))}
                 {filteredEmployees.length === 0 && (
                   <tr>
-                    <td colSpan={5} style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
+                    <td colSpan={6} style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
                       No employees found.
                     </td>
                   </tr>
@@ -251,7 +266,7 @@ export default function Employees() {
               <div>
                 <h2 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>Add New Employee</h2>
                 <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
-                  Set a password the employee will use to log in
+                  Create an account and assign a manager
                 </p>
               </div>
               <button
