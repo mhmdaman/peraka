@@ -21,9 +21,9 @@ interface Balance { type: string; balance: number }
 
 const statusLabel: Record<string, { label: string; color: string; bg: string }> = {
   pending_manager: { label: 'Awaiting Manager', color: '#fcd34d', bg: 'rgba(252,211,77,0.1)' },
-  pending_admin:   { label: 'Awaiting HR',      color: '#93c5fd', bg: 'rgba(147,197,253,0.1)' },
-  approved:        { label: 'Approved',          color: '#6ee7b7', bg: 'rgba(110,231,183,0.1)' },
-  rejected:        { label: 'Rejected',          color: '#fca5a5', bg: 'rgba(252,165,165,0.1)' },
+  pending_admin: { label: 'Awaiting HR', color: '#93c5fd', bg: 'rgba(147,197,253,0.1)' },
+  approved: { label: 'Approved', color: '#6ee7b7', bg: 'rgba(110,231,183,0.1)' },
+  rejected: { label: 'Rejected', color: '#fca5a5', bg: 'rgba(252,165,165,0.1)' },
 }
 
 const StatusBadge = ({ status }: { status: string }) => {
@@ -52,14 +52,14 @@ export default function Leaves() {
   const { user } = useAuth()
   const role = user?.role ?? 'employee'
 
-  const [leaves, setLeaves]       = useState<Leave[]>([])
-  const [balances, setBalances]   = useState<Balance[]>([])
-  const [loading, setLoading]     = useState(true)
+  const [leaves, setLeaves] = useState<Leave[]>([])
+  const [balances, setBalances] = useState<Balance[]>([])
+  const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
-  const [form, setForm]           = useState(defaultForm)
+  const [form, setForm] = useState(defaultForm)
   const [submitting, setSubmitting] = useState(false)
-  const [error, setError]         = useState('')
-  const [acting, setActing]       = useState<number | null>(null)
+  const [error, setError] = useState('')
+  const [acting, setActing] = useState<number | null>(null)
 
   const fetchData = async () => {
     try {
@@ -111,14 +111,14 @@ export default function Leaves() {
 
   const canAction = (leave: Leave) => {
     if (role === 'manager') return leave.status === 'pending_manager'
-    if (role === 'admin')   return leave.status === 'pending_admin'
+    if (role === 'admin') return leave.status === 'pending_admin'
     return false
   }
 
   const pageSubtitle =
-    role === 'admin'   ? 'HR final approval — leaves forwarded by managers' :
-    role === 'manager' ? 'Review employee leave requests and forward to HR' :
-                         'Apply for leave and track your requests'
+    role === 'admin' ? 'HR final approval — leaves forwarded by managers' :
+      role === 'manager' ? 'Review employee leave requests and forward to HR' :
+        'Apply for leave and track your requests'
 
   return (
     <div>
@@ -131,7 +131,7 @@ export default function Leaves() {
         {role === 'employee' && (
           <button
             onClick={() => setShowModal(true)}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 0.875rem', borderRadius: 8, fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer', background: 'var(--text-primary)', color: '#0a0a0a', border: 'none' }}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 0.875rem', borderRadius: 8, fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer', background: 'var(--text-primary)', color: 'white', border: 'none' }}
           >
             <Plus size={15} /> Apply for Leave
           </button>
@@ -155,7 +155,7 @@ export default function Leaves() {
       <div className="card" style={{ padding: 0 }}>
         <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid var(--border)' }}>
           <p style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
-            {role === 'admin'   && 'Leaves Awaiting HR Approval'}
+            {role === 'admin' && 'Leaves Awaiting HR Approval'}
             {role === 'manager' && 'Employees\' Leave Requests'}
             {role === 'employee' && 'My Leave History'}
           </p>

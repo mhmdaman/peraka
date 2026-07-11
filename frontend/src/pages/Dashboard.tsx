@@ -285,11 +285,20 @@ function EmployeeDashboard({ data }: { data: Record<string, unknown> }) {
   const stats = data.stats as Record<string, number>
   const balances = data.balances as Array<{ type: string; balance: number }>
   const myLeaves = data.myLeaves as Array<Record<string, unknown>>
-  const myTasks = data.myTasks as Array<Record<string, unknown>>
+  const [myTasks, setMyTasks] = useState<Array<Record<string, unknown>>>(data.myTasks as Array<Record<string, unknown>>)
   const announcements = data.announcements as Array<Record<string, unknown>>
 
   const priorityColor: Record<string, string> = {
     urgent: 'var(--danger)', high: 'var(--warning)', medium: 'var(--text-muted)', low: 'var(--text-muted)'
+  }
+
+  const handleCompleteTask = async (id: number) => {
+    try {
+      await api.put(`/tasks/${id}/status`, { status: 'completed' })
+      setMyTasks(prev => prev.filter(t => t.id !== id))
+    } catch (err) {
+      console.error(err)
+    }
   }
 
   return (
@@ -350,7 +359,7 @@ function EmployeeDashboard({ data }: { data: Record<string, unknown> }) {
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 {myTasks.map((t: Record<string, unknown>) => (
-                  <div key={t.id as number} style={{ padding: '0.5rem 0', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <div key={t.id as number} style={{ padding: '0.5rem 0', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                     <span style={{ width: 6, height: 6, borderRadius: '50%', background: priorityColor[t.priority as string] ?? 'var(--text-muted)', flexShrink: 0 }} />
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: '0.8125rem', color: 'var(--text-primary)', fontWeight: 500 }}>{t.title as string}</div>
@@ -358,6 +367,13 @@ function EmployeeDashboard({ data }: { data: Record<string, unknown> }) {
                         Due {new Date(t.due_date as string).toLocaleDateString()}
                       </div>
                     </div>
+                    <button
+                      onClick={() => handleCompleteTask(t.id as number)}
+                      title="Mark as completed"
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--success)', padding: '0.25rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    >
+                      <Check size={16} strokeWidth={1.8} />
+                    </button>
                   </div>
                 ))}
               </div>

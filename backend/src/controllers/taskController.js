@@ -59,6 +59,14 @@ exports.create = async (req, res) => {
 exports.updateStatus = async (req, res) => {
   const { status } = req.body;
   try {
+    const task = await prisma.task.findUnique({ where: { id: parseInt(req.params.id) } });
+    if (!task) return res.status(404).json({ success: false, message: 'Task not found' });
+    
+    // Check permissions: must be assignee, assigner, admin, or manager
+    if (req.user.role === 'employee' && task.assigned_to !== parseInt(req.user.id)) {
+      return res.status(403).json({ success: false, message: 'Not authorized to update this task' });
+    }
+
     await prisma.task.update({
       where: { id: parseInt(req.params.id) },
       data: { status }
