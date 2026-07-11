@@ -2,7 +2,7 @@ import { NavLink } from 'react-router-dom'
 import {
   LayoutDashboard, Users, CalendarDays,
   CheckSquare, Megaphone, MessageSquare,
-  Settings, Zap,
+  Settings, Zap, Building2
 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 
@@ -10,6 +10,7 @@ import { useAuth } from '../contexts/AuthContext'
 // If no `roles` key → visible to all
 const navItems = [
   { to: '/',              icon: LayoutDashboard, label: 'Dashboard',      exact: true },
+  { to: '/departments',   icon: Building2,       label: 'Departments',    roles: ['admin', 'manager'] },
   { to: '/employees',     icon: Users,           label: 'Employees',      roles: ['admin', 'manager'] },
   { to: '/leaves',        icon: CalendarDays,    label: 'Leaves' },
   { to: '/tasks',         icon: CheckSquare,     label: 'Tasks' },

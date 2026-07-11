@@ -46,6 +46,7 @@ model Employee {
   status          String     @default("active") // active, inactive, suspended
   role_id         Int
   salary_base     Decimal    @default(0.00) @db.Decimal(12, 2)
+  public_key      String?    @db.Text
   created_at      DateTime   @default(now())
   updated_at      DateTime   @updatedAt
 

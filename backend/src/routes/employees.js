@@ -11,4 +11,7 @@ router.put('/:id', authorize('admin', 'manager'), ctrl.update);
 router.post('/:id/avatar', authorize('admin'), uploadAvatar.single('avatar'), ctrl.uploadAvatar);
 router.delete('/:id', authorize('admin'), ctrl.deleteEmployee);
 
+router.post('/public-key', ctrl.updatePublicKey);
+router.get('/:id/public-key', ctrl.getPublicKey);
+
 module.exports = router;

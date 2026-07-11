@@ -9,13 +9,42 @@ interface Announcement {
   content: string
   author_id: number
   created_at: string
-  author: string
+  created_by_name: string
+}
+
+const inputStyle: React.CSSProperties = {
+  width: '100%',
+  padding: '0.6rem 0.875rem',
+  borderRadius: 8,
+  border: '1px solid var(--border)',
+  background: 'var(--bg-surface)',
+  color: 'var(--text-primary)',
+  fontSize: '0.875rem',
+  outline: 'none',
+  boxSizing: 'border-box',
+  fontFamily: 'Inter, sans-serif',
+  transition: 'border-color 0.15s',
+}
+
+const labelStyle: React.CSSProperties = {
+  display: 'block',
+  marginBottom: '0.3rem',
+  fontSize: '0.75rem',
+  fontWeight: 500,
+  color: 'var(--text-muted)',
+  textTransform: 'uppercase',
+  letterSpacing: '0.04em',
 }
 
 export default function Announcements() {
   const { user } = useAuth()
+  const canManage = user?.role === 'admin' || user?.role === 'manager'
+  
   const [announcements, setAnnouncements] = useState<Announcement[]>([])
   const [loading, setLoading] = useState(true)
+  const [showModal, setShowModal] = useState(false)
+  const [form, setForm] = useState({ title: '', content: '' })
+  const [error, setError] = useState('')
 
   const fetchAnnouncements = async () => {
     try {
@@ -43,6 +72,19 @@ export default function Announcements() {
     }
   }
 
+  const handleAdd = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
+    try {
+      await api.post('/announcements', form)
+      setShowModal(false)
+      setForm({ title: '', content: '' })
+      fetchAnnouncements()
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to create announcement')
+    }
+  }
+
   return (
     <div>
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -50,8 +92,8 @@ export default function Announcements() {
           <h1 className="page-title">Announcements</h1>
           <p className="page-subtitle">Stay up to date with company news</p>
         </div>
-        {user?.role === 'admin' && (
-          <button className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        {canManage && (
+          <button onClick={() => setShowModal(true)} className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <Plus size={16} /> New Announcement
           </button>
         )}
@@ -77,14 +119,14 @@ export default function Announcements() {
               <div style={{ flex: 1 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
                   <h3 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>{announcement.title}</h3>
-                  {user?.role === 'admin' && (
+                  {canManage && (
                     <button onClick={() => handleDelete(announcement.id)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.25rem' }}>
                       <Trash2 size={16} />
                     </button>
                   )}
                 </div>
                 <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', fontSize: '0.8125rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
-                  <span style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{announcement.author}</span>
+                  <span style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{announcement.created_by_name}</span>
                   <span>•</span>
                   <span>{new Date(announcement.created_at).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
                 </div>
@@ -96,6 +138,38 @@ export default function Announcements() {
           ))
         )}
       </div>
+
+      {showModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: '1rem' }}>
+          <div style={{ background: 'var(--bg-primary)', borderRadius: 16, width: '100%', maxWidth: 500, overflow: 'hidden', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
+            <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h2 style={{ fontSize: '1.125rem', fontWeight: 600, margin: 0 }}>New Announcement</h2>
+              <button onClick={() => setShowModal(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
+                &times;
+              </button>
+            </div>
+            
+            <form onSubmit={handleAdd} style={{ padding: '1.5rem' }}>
+              {error && <div style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', padding: '0.75rem', borderRadius: 8, fontSize: '0.875rem', marginBottom: '1.25rem' }}>{error}</div>}
+              
+              <div style={{ marginBottom: '1.25rem' }}>
+                <label style={labelStyle}>Title</label>
+                <input required style={inputStyle} value={form.title} onChange={e => setForm({...form, title: e.target.value})} placeholder="Announcement Title" />
+              </div>
+
+              <div style={{ marginBottom: '1.5rem' }}>
+                <label style={labelStyle}>Content</label>
+                <textarea required style={{ ...inputStyle, minHeight: 120, resize: 'vertical' }} value={form.content} onChange={e => setForm({...form, content: e.target.value})} placeholder="Type your announcement here..." />
+              </div>
+
+              <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+                <button type="button" onClick={() => setShowModal(false)} className="btn-secondary" style={{ padding: '0.6rem 1rem', borderRadius: 8, fontSize: '0.875rem', fontWeight: 500 }}>Cancel</button>
+                <button type="submit" className="btn-primary" style={{ padding: '0.6rem 1.25rem', borderRadius: 8, fontSize: '0.875rem', fontWeight: 500 }}>Publish</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

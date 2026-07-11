@@ -4,6 +4,7 @@ const cors = require('cors');
 const http = require('http');
 const { Server } = require('socket.io');
 const path = require('path');
+const prisma = require('./config/db');
 
 const authRoutes = require('./routes/auth');
 const employeeRoutes = require('./routes/employees');
@@ -15,6 +16,7 @@ const taskRoutes = require('./routes/tasks');
 const announcementRoutes = require('./routes/announcements');
 const notificationRoutes = require('./routes/notifications');
 const dashboardRoutes = require('./routes/dashboard');
+const chatRoutes = require('./routes/chat');
 
 const app = express();
 const server = http.createServer(app);
@@ -43,6 +45,7 @@ app.use('/api/tasks', taskRoutes);
 app.use('/api/announcements', announcementRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/chat', chatRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => res.json({ status: 'ok', timestamp: new Date() }));
@@ -58,11 +61,22 @@ io.on('connection', (socket) => {
     io.emit('online_users', Array.from(onlineUsers.keys()));
   });
 
-  socket.on('send_message', ({ senderId, receiverId, message }) => {
-    const receiverSocket = onlineUsers.get(String(receiverId));
-    const payload = { senderId, receiverId, message, createdAt: new Date() };
-    if (receiverSocket) io.to(receiverSocket).emit('receive_message', payload);
-    socket.emit('receive_message', payload); // echo to sender
+  socket.on('send_message', async ({ senderId, receiverId, message }) => {
+    try {
+      const chat = await prisma.chat.create({
+        data: {
+          sender_id: parseInt(senderId),
+          receiver_id: parseInt(receiverId),
+          message: message
+        }
+      });
+      const receiverSocket = onlineUsers.get(String(receiverId));
+      const payload = { senderId, receiverId, message, createdAt: chat.created_at };
+      if (receiverSocket) io.to(receiverSocket).emit('receive_message', payload);
+      socket.emit('receive_message', payload); // echo to sender
+    } catch (error) {
+      console.error('Error saving chat message:', error);
+    }
   });
 
   socket.on('disconnect', () => {

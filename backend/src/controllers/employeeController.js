@@ -186,3 +186,31 @@ exports.deleteEmployee = async (req, res) => {
     res.status(500).json({ success: false, message: err.message }); 
   }
 };
+
+exports.updatePublicKey = async (req, res) => {
+  const { public_key } = req.body;
+  try {
+    await prisma.employee.update({
+      where: { id: parseInt(req.user.id) },
+      data: { public_key }
+    });
+    res.json({ success: true, message: 'Public key updated' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+exports.getPublicKey = async (req, res) => {
+  try {
+    const employee = await prisma.employee.findUnique({
+      where: { id: parseInt(req.params.id) },
+      select: { public_key: true }
+    });
+    if (!employee || !employee.public_key) {
+      return res.status(404).json({ success: false, message: 'Public key not found for this user' });
+    }
+    res.json({ success: true, public_key: employee.public_key });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
