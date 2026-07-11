@@ -48,6 +48,8 @@ export default function Sidebar({ collapsed }: SidebarProps) {
       transition: 'width 0.3s ease',
       background: 'var(--bg-surface)',
       backgroundImage: 'var(--paper-texture)',
+      backdropFilter: 'blur(12px)',
+      WebkitBackdropFilter: 'blur(12px)',
       borderRight: '1px solid rgba(60, 56, 48, 0.08)',
       display: 'flex',
       flexDirection: 'column',
@@ -62,21 +64,25 @@ export default function Sidebar({ collapsed }: SidebarProps) {
         height: 64,
         justifyContent: collapsed ? 'center' : 'flex-start',
       }}>
-        {/* Ink brush circle */}
-        <div style={{
-          width: 32, height: 32, borderRadius: '50%', flexShrink: 0,
-          background: 'var(--accent)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          boxShadow: '0 1px 4px rgba(44,48,46,0.2)',
-        }}>
-          <span style={{ color: 'var(--bg-primary)', fontFamily: 'var(--font-display)', fontSize: '1rem', fontWeight: 700, lineHeight: 1 }}>P</span>
-        </div>
-        {!collapsed && (
-          <div>
-            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '1.0625rem', color: 'var(--text-primary)', whiteSpace: 'nowrap', letterSpacing: '-0.01em' }}>Peraka</div>
-            <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500 }}>
+        {!collapsed ? (
+          <div style={{ display: 'flex', flexDirection: 'column', width: '100%', paddingRight: '0.5rem' }}>
+            <img 
+              src="/E9E90172-BF75-4D65-B3DE-C51789596691_4_5005_c.jpeg" 
+              alt="Peraka Logo" 
+              style={{ height: 36, objectFit: 'contain', alignSelf: 'flex-start', mixBlendMode: 'multiply' }} 
+            />
+            <div style={{ fontSize: '0.55rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600, marginTop: '0.15rem' }}>
               {user?.role === 'admin' ? 'Admin Panel' : user?.role === 'manager' ? 'Manager Portal' : 'Employee Portal'}
             </div>
+          </div>
+        ) : (
+          <div style={{
+            width: 32, height: 32, borderRadius: '50%', flexShrink: 0,
+            background: 'var(--accent)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 1px 4px rgba(44,48,46,0.2)',
+          }}>
+            <span style={{ color: 'var(--bg-primary)', fontFamily: 'var(--font-display)', fontSize: '1rem', fontWeight: 700, lineHeight: 1 }}>P</span>
           </div>
         )}
       </div>

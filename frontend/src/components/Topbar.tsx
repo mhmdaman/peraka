@@ -25,6 +25,8 @@ export default function Topbar({ onToggleSidebar }: TopbarProps) {
       height: 64,
       background: 'var(--bg-surface)',
       backgroundImage: 'var(--paper-texture)',
+      backdropFilter: 'blur(12px)',
+      WebkitBackdropFilter: 'blur(12px)',
       borderBottom: '1px solid rgba(60, 56, 48, 0.08)',
       display: 'flex',
       alignItems: 'center',

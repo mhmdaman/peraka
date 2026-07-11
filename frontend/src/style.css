@@ -4,8 +4,8 @@
   :root {
     /* ── Ink Wash Palette ── */
     --bg-primary: #F7F5EF;        /* aged parchment */
-    --bg-surface: #EDEAE2;        /* lighter rice paper */
-    --bg-card: #F2F0EA;           /* warm card background */
+    --bg-surface: rgba(237, 234, 226, 0.80);        /* lighter rice paper, semi-transparent */
+    --bg-card: rgba(242, 240, 234, 0.85);           /* warm card background, semi-transparent */
     --border: rgba(60, 56, 48, 0.12);    /* faint ink line */
     --border-light: rgba(60, 56, 48, 0.08);
     --accent: #2C302E;            /* deep charcoal ink */
@@ -14,7 +14,7 @@
     --text-primary: #1A1C1A;      /* near-black ink */
     --text-secondary: #4A4E4C;    /* dark ash */
     --text-muted: #8A8D89;        /* worn ink, faded */
-    --success: #4A6D5C;           /* muted pine green */
+    --success: #2D4F3F;           /* dark pine green */
     --warning: #8B7A3E;           /* aged gold */
     --danger: #7A3B3B;            /* dried crimson ink */
     --info: #3E5C7A;              /* deep indigo wash */
@@ -36,7 +36,14 @@
   html, body, #app {
     height: 100%;
     background-color: var(--bg-primary);
-    background-image: var(--paper-texture);
+    background-image: 
+      var(--paper-texture), 
+      linear-gradient(rgba(247, 245, 239, 0.86), rgba(247, 245, 239, 0.86)), 
+      url('/bg.png');
+    background-size: auto, auto, cover;
+    background-position: center, center, top center;
+    background-repeat: repeat, no-repeat, no-repeat;
+    background-attachment: scroll, scroll, fixed;
     color: var(--text-primary);
   }
 
@@ -60,6 +67,8 @@
   .card {
     background: var(--bg-card);
     background-image: var(--paper-texture);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     border: none;
     border-radius: 3px;
     padding: 1.5rem;
