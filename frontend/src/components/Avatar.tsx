@@ -8,15 +8,16 @@ interface AvatarProps {
 const sizes = { sm: 28, md: 36, lg: 44, xl: 64 }
 const fontSizes = { sm: 11, md: 13, lg: 16, xl: 22 }
 
+// Monochrome ink-wash tones
 const colors = [
-  ['#6366f1', '#4f46e5'],
-  ['#8b5cf6', '#7c3aed'],
-  ['#ec4899', '#db2777'],
-  ['#f59e0b', '#d97706'],
-  ['#10b981', '#059669'],
-  ['#3b82f6', '#2563eb'],
-  ['#ef4444', '#dc2626'],
-  ['#06b6d4', '#0891b2'],
+  ['#3C3830', '#2C302E'],
+  ['#4A4E4C', '#3C3830'],
+  ['#5A5E5C', '#4A4E4C'],
+  ['#626864', '#525854'],
+  ['#6E746F', '#5E645F'],
+  ['#7A807B', '#6A706B'],
+  ['#8A8D89', '#7A7D79'],
+  ['#969A96', '#868A86'],
 ]
 
 function getInitials(name: string) {
@@ -43,8 +44,10 @@ export default function Avatar({ name = 'User', src, size = 'md', className = ''
         overflow: 'hidden', flexShrink: 0,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         background: `linear-gradient(135deg, ${bg}, ${dark})`,
-        fontSize: fs, fontWeight: 600, color: 'white',
-        border: '2px solid rgba(255,255,255,0.1)',
+        fontSize: fs, fontWeight: 600, color: '#F7F5EF',
+        border: '1.5px solid rgba(60, 56, 48, 0.1)',
+        fontFamily: 'var(--font-display)',
+        letterSpacing: '0.02em',
       }}
     >
       {src

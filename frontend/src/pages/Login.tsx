@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { useNavigate } from 'react-router-dom'
-import { Eye, EyeOff, Zap, AlertCircle } from 'lucide-react'
+import { Eye, EyeOff, AlertCircle } from 'lucide-react'
 
 export default function Login() {
   const { login } = useAuth()
@@ -30,53 +30,59 @@ export default function Login() {
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'var(--bg-primary)',
+      background: '#eef2ee',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       padding: '1rem',
-      position: 'relative',
-      overflow: 'hidden',
+      fontFamily: '"Inter", sans-serif',
+      position: 'relative'
     }}>
-      {/* Background decoration */}
-      <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
-        <div style={{ position: 'absolute', top: '-20%', left: '-10%', width: 600, height: 600, borderRadius: '50%', background: 'radial-gradient(circle, rgba(99,102,241,0.12) 0%, transparent 70%)' }} />
-        <div style={{ position: 'absolute', bottom: '-20%', right: '-10%', width: 500, height: 500, borderRadius: '50%', background: 'radial-gradient(circle, rgba(139,92,246,0.1) 0%, transparent 70%)' }} />
-        <div style={{ position: 'absolute', top: '30%', left: '5%', width: 2, height: 200, background: 'linear-gradient(to bottom, transparent, rgba(99,102,241,0.3), transparent)', borderRadius: 999 }} />
-        <div style={{ position: 'absolute', top: '20%', right: '8%', width: 2, height: 150, background: 'linear-gradient(to bottom, transparent, rgba(139,92,246,0.2), transparent)', borderRadius: 999 }} />
-      </div>
+      {/* Background blurred leaves */}
+      <div style={{
+        position: 'absolute',
+        top: 0, left: 0, right: 0, bottom: 0,
+        backgroundImage: 'url(https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?q=80&w=2000&auto=format&fit=crop)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        opacity: 0.15,
+        filter: 'blur(8px)',
+        zIndex: 0
+      }} />
 
       <div style={{
         width: '100%',
-        maxWidth: 420,
+        maxWidth: 900,
+        height: 600,
+        background: '#ffffff',
+        borderRadius: 30,
+        boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
+        display: 'flex',
+        overflow: 'hidden',
         position: 'relative',
-        zIndex: 1,
+        zIndex: 1
       }}>
-        {/* Logo */}
-        <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-          <div style={{
-            width: 56, height: 56, borderRadius: 16, margin: '0 auto 1rem',
-            background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 8px 32px rgba(99,102,241,0.4)',
-          }}>
-            <Zap size={26} color="white" fill="white" />
-          </div>
-          <h1 style={{ fontSize: '1.875rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
-            Welcome back
+        
+        {/* Left Side: Form */}
+        <div style={{
+          width: '50%',
+          padding: '3rem 4rem',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          position: 'relative'
+        }}>
+          <h1 style={{ fontSize: '2rem', fontWeight: 600, color: '#1a1a1a', marginBottom: '2.5rem' }}>
+            Log in
           </h1>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Sign in to Peraka EMS</p>
-        </div>
 
-        {/* Card */}
-        <div className="card" style={{ border: '1px solid var(--border-light)', boxShadow: '0 24px 64px rgba(0,0,0,0.4)' }}>
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
             {error && (
               <div style={{
                 display: 'flex', alignItems: 'center', gap: '0.5rem',
                 background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)',
                 borderRadius: 8, padding: '0.75rem 1rem',
-                color: '#fca5a5', fontSize: '0.875rem',
+                color: '#ef4444', fontSize: '0.875rem',
               }}>
                 <AlertCircle size={15} style={{ flexShrink: 0 }} />
                 {error}
@@ -84,81 +90,179 @@ export default function Login() {
             )}
 
             <div>
-              <label className="label">Email address</label>
+              <label style={{ display: 'block', fontSize: '0.8rem', color: '#666', marginBottom: '0.4rem', fontWeight: 500 }}>
+                Login, email or phone number
+              </label>
               <input
                 id="email"
                 type="email"
-                className="input"
-                placeholder="you@company.com"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 required
                 autoFocus
+                style={{
+                  width: '100%',
+                  padding: '0.875rem 1rem',
+                  borderRadius: 999,
+                  border: '1px solid #ccc',
+                  outline: 'none',
+                  fontSize: '0.9rem',
+                  boxSizing: 'border-box'
+                }}
               />
             </div>
 
             <div>
-              <label className="label">Password</label>
+              <label style={{ display: 'block', fontSize: '0.8rem', color: '#666', marginBottom: '0.4rem', fontWeight: 500 }}>
+                Password
+              </label>
               <div style={{ position: 'relative' }}>
                 <input
                   id="password"
                   type={showPass ? 'text' : 'password'}
-                  className="input"
-                  placeholder="••••••••"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   required
-                  style={{ paddingRight: '2.75rem' }}
+                  style={{
+                    width: '100%',
+                    padding: '0.875rem 1rem',
+                    borderRadius: 999,
+                    border: '1px solid #ccc',
+                    outline: 'none',
+                    fontSize: '0.9rem',
+                    boxSizing: 'border-box',
+                    paddingRight: '3rem'
+                  }}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPass(p => !p)}
-                  style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex' }}
+                  style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#999', display: 'flex' }}
                 >
-                  {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
+                  {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
             </div>
 
             <button
-              id="login-btn"
               type="submit"
-              className="btn btn-primary"
               disabled={loading}
-              style={{ width: '100%', justifyContent: 'center', padding: '0.75rem', fontSize: '0.9375rem', marginTop: '0.5rem' }}
+              style={{
+                width: '100%',
+                padding: '0.875rem',
+                borderRadius: 999,
+                border: 'none',
+                background: '#3f574d',
+                color: 'white',
+                fontSize: '0.95rem',
+                fontWeight: 500,
+                cursor: 'pointer',
+                marginTop: '0.5rem',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center'
+              }}
             >
               {loading ? (
-                <>
-                  <span style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: 'white', borderRadius: '50%', animation: 'spin 0.7s linear infinite', display: 'inline-block' }} />
-                  Signing in...
-                </>
-              ) : 'Sign in'}
+                <span style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: 'white', borderRadius: '50%', animation: 'spin 0.7s linear infinite', display: 'inline-block' }} />
+              ) : 'Log in'}
             </button>
           </form>
+
+          <div style={{ display: 'flex', alignItems: 'center', margin: '2rem 0', color: '#aaa', fontSize: '0.8rem' }}>
+            <hr style={{ flex: 1, border: 'none', borderTop: '1px solid #e0e0e0' }} />
+            <span style={{ padding: '0 1rem' }}>or log in with</span>
+            <hr style={{ flex: 1, border: 'none', borderTop: '1px solid #e0e0e0' }} />
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginBottom: '2rem' }}>
+            <button style={{
+              width: 48, height: 48, borderRadius: 12, border: '1px solid #e0e0e0', background: 'white',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer'
+            }}>
+              <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google" style={{ width: 20 }} />
+            </button>
+            <button style={{
+              width: 48, height: 48, borderRadius: 12, border: '1px solid #e0e0e0', background: 'white',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer'
+            }}>
+              <img src="https://upload.wikimedia.org/wikipedia/commons/e/e5/Microsoft_Office_logo_%282013%E2%80%932019%29.svg" alt="Microsoft Office" style={{ width: 22 }} />
+            </button>
+          </div>
+
+          <div style={{ textAlign: 'center' }}>
+            <a href="#" style={{ color: '#7b9c8c', textDecoration: 'none', fontSize: '0.85rem' }}>
+              Forgot Login or password?
+            </a>
+          </div>
+          
+          {/* Hidden but accessible demo creds for easy testing */}
+          <div style={{ position: 'absolute', bottom: '1rem', left: '1rem', opacity: 0.2, transition: 'opacity 0.2s', fontSize: '0.65rem' }} onMouseEnter={e => e.currentTarget.style.opacity = '1'} onMouseLeave={e => e.currentTarget.style.opacity = '0.2'}>
+            Admin: admin@company.com / Admin@123<br/>
+            (Hover to see demo creds)
+          </div>
         </div>
 
-        {/* Demo creds */}
-        <div style={{ marginTop: '1.5rem', background: 'rgba(99,102,241,0.06)', border: '1px solid rgba(99,102,241,0.2)', borderRadius: 10, padding: '1rem 1.25rem' }}>
-          <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.5rem' }}>Demo credentials</p>
-          {[
-            { role: 'Admin', email: 'admin@company.com' },
-            { role: 'Manager', email: 'sarah@company.com' },
-            { role: 'Employee', email: 'john@company.com' },
-          ].map(c => (
-            <button
-              key={c.role}
-              type="button"
-              onClick={() => { setEmail(c.email); setPassword('Admin@123') }}
-              style={{ display: 'flex', justifyContent: 'space-between', width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: '0.2rem 0', color: 'var(--text-secondary)', fontSize: '0.8125rem' }}
-            >
-              <span style={{ color: 'var(--accent)', fontWeight: 500 }}>{c.role}</span>
-              <span>{c.email}</span>
-            </button>
-          ))}
-          <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>Password: Admin@123 (after seeding DB)</p>
+        {/* Right Side: Image Graphic */}
+        <div style={{
+          width: '50%',
+          position: 'relative',
+          background: '#eef2ee',
+          overflow: 'hidden'
+        }}>
+          {/* The wavy SVG cut out */}
+          <div style={{
+            position: 'absolute',
+            left: -1,
+            top: 0,
+            bottom: 0,
+            width: '120px',
+            zIndex: 10,
+            filter: 'drop-shadow(5px 0 10px rgba(0,0,0,0.15))'
+          }}>
+            <svg viewBox="0 0 100 800" preserveAspectRatio="none" style={{ width: '100%', height: '100%', display: 'block' }}>
+              <path d="M0,0 L100,0 C60,100 40,200 60,300 C80,400 90,500 50,600 C10,700 40,750 0,800 Z" fill="#ffffff" />
+            </svg>
+          </div>
+
+          {/* Additional shadow layers for depth */}
+          <div style={{
+            position: 'absolute',
+            left: 10,
+            top: 0,
+            bottom: 0,
+            width: '120px',
+            zIndex: 9,
+            filter: 'drop-shadow(10px 0 15px rgba(0,0,0,0.3))'
+          }}>
+            <svg viewBox="0 0 100 800" preserveAspectRatio="none" style={{ width: '100%', height: '100%', display: 'block' }}>
+              <path d="M0,0 L100,0 C70,120 50,220 70,320 C90,420 80,520 40,620 C0,720 30,760 0,800 Z" fill="#cfd9cf" />
+            </svg>
+          </div>
+
+          <div style={{
+            position: 'absolute',
+            left: 20,
+            top: 0,
+            bottom: 0,
+            width: '120px',
+            zIndex: 8,
+            filter: 'drop-shadow(15px 0 20px rgba(0,0,0,0.5))'
+          }}>
+            <svg viewBox="0 0 100 800" preserveAspectRatio="none" style={{ width: '100%', height: '100%', display: 'block' }}>
+              <path d="M0,0 L100,0 C80,140 60,240 80,340 C100,440 70,540 30,640 C-10,740 20,780 0,800 Z" fill="#1c2d22" />
+            </svg>
+          </div>
+
+          {/* Leaf image background */}
+          <img 
+            src="https://images.unsplash.com/photo-1596541223130-5d56a7a9f04e?q=80&w=2000&auto=format&fit=crop" 
+            alt="Leaves" 
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+          />
         </div>
       </div>
-
+      
       <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
     </div>
   )

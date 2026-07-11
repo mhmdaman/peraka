@@ -35,24 +35,24 @@ const defaultForm = {
 const inputStyle: React.CSSProperties = {
   width: '100%',
   padding: '0.6rem 0.875rem',
-  borderRadius: 8,
+  borderRadius: 2,
   border: '1px solid var(--border)',
-  background: 'var(--bg-surface)',
+  background: 'var(--bg-primary)',
   color: 'var(--text-primary)',
   fontSize: '0.875rem',
   outline: 'none',
   boxSizing: 'border-box',
-  fontFamily: 'Inter, sans-serif',
-  transition: 'border-color 0.15s',
+  fontFamily: 'var(--font-body)',
+  transition: 'border-color 0.3s, box-shadow 0.3s',
 }
 const labelStyle: React.CSSProperties = {
   display: 'block',
   marginBottom: '0.3rem',
-  fontSize: '0.75rem',
-  fontWeight: 500,
+  fontSize: '0.7rem',
+  fontWeight: 600,
   color: 'var(--text-muted)',
   textTransform: 'uppercase',
-  letterSpacing: '0.04em',
+  letterSpacing: '0.06em',
 }
 
 export default function Employees() {
@@ -76,7 +76,6 @@ export default function Employees() {
       const res = await api.get('/employees')
       setEmployees(res.data.data)
       
-      // Filter out managers to populate the dropdown
       const mgrs = res.data.data.filter((e: any) => e.role_name === 'manager' || e.role_name === 'admin' || e.job_title?.toLowerCase().includes('manager'))
       setManagers(mgrs)
     } catch (err) {
@@ -143,11 +142,11 @@ export default function Employees() {
         </div>
         {isAdmin && (
           <button
-            className="btn-primary"
+            className="btn btn-primary"
             onClick={() => setShowAddModal(true)}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 0.875rem', borderRadius: 8, fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer', border: 'none' }}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
           >
-            <Plus size={15} /> Add Employee
+            <Plus size={15} strokeWidth={1.8} /> Add Employee
           </button>
         )}
       </div>
@@ -157,7 +156,7 @@ export default function Employees() {
         {/* Search bar */}
         <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid var(--border)', display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
           <div style={{ position: 'relative', flex: 1, maxWidth: 280 }}>
-            <Search size={15} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+            <Search size={15} strokeWidth={1.8} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
             <input
               type="text"
               placeholder="Search employees..."
@@ -166,43 +165,41 @@ export default function Employees() {
               style={{ ...inputStyle, paddingLeft: '2.25rem' }}
             />
           </div>
-          <button
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 0.875rem', borderRadius: 8, fontSize: '0.8125rem', fontWeight: 500, cursor: 'pointer', background: 'transparent', border: '1px solid var(--border)', color: 'var(--text-muted)' }}
-          >
-            <Filter size={14} /> Filter
+          <button className="btn btn-secondary" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+            <Filter size={14} strokeWidth={1.8} /> Filter
           </button>
         </div>
 
         {/* Table */}
         <div style={{ overflowX: 'auto' }}>
           {loading ? (
-            <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
+            <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.875rem', fontStyle: 'italic' }}>
               Loading...
             </div>
           ) : (
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
-                <tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--bg-surface)' }}>
+                <tr>
                   {['Employee', 'Job Title', 'Department', 'Manager', 'Status', ''].map(h => (
-                    <th key={h} style={{ padding: '0.75rem 1.25rem', textAlign: h === '' ? 'right' : 'left', fontSize: '0.7rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{h}</th>
+                    <th key={h} style={{ textAlign: h === '' ? 'right' : 'left' }}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {filteredEmployees.map(emp => (
-                  <tr key={emp.id} style={{ borderBottom: '1px solid var(--border)' }}>
+                  <tr key={emp.id} className="ink-ripple">
                     <td style={{ padding: '0.875rem 1.25rem' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                        <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'var(--bg-surface)', border: '1px solid var(--border)', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600, fontSize: '0.8rem', flexShrink: 0, overflow: 'hidden' }}>
+                        <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'rgba(44,48,46,0.06)', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600, fontSize: '0.75rem', flexShrink: 0, overflow: 'hidden', fontFamily: 'var(--font-display)' }}>
                           {emp.avatar
                             ? <img src={emp.avatar} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                             : `${emp.first_name[0]}${emp.last_name[0]}`}
                         </div>
                         <div>
-                          <Link to={`/employees/${emp.id}`} style={{ fontWeight: 600, color: 'var(--text-primary)', textDecoration: 'none', fontSize: '0.875rem' }}>
+                          <Link to={`/employees/${emp.id}`} style={{ fontWeight: 500, color: 'var(--text-primary)', textDecoration: 'none', fontSize: '0.875rem' }}>
                             {emp.first_name} {emp.last_name}
                           </Link>
-                          <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{emp.email}</div>
+                          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{emp.email}</div>
                         </div>
                       </div>
                     </td>
@@ -213,23 +210,23 @@ export default function Employees() {
                     </td>
                     <td style={{ padding: '0.875rem 1.25rem' }}>
                       <span style={{
-                        padding: '0.2rem 0.55rem', borderRadius: 999, fontSize: '0.7rem', fontWeight: 600, letterSpacing: '0.02em',
-                        background: emp.status === 'active' ? 'rgba(110,231,183,0.1)' : 'rgba(163,163,163,0.1)',
-                        color: emp.status === 'active' ? '#6ee7b7' : '#a3a3a3',
+                        padding: '0.2rem 0.55rem', borderRadius: 2, fontSize: '0.68rem', fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase',
+                        background: emp.status === 'active' ? 'rgba(74,109,92,0.08)' : 'rgba(138,141,137,0.08)',
+                        color: emp.status === 'active' ? 'var(--success)' : 'var(--text-muted)',
                       }}>
                         {emp.status}
                       </span>
                     </td>
                     <td style={{ padding: '0.875rem 1.25rem', textAlign: 'right' }}>
-                      <button style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.25rem', borderRadius: 6 }}>
-                        <MoreVertical size={15} />
+                      <button style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.25rem', borderRadius: 2 }}>
+                        <MoreVertical size={15} strokeWidth={1.8} />
                       </button>
                     </td>
                   </tr>
                 ))}
                 {filteredEmployees.length === 0 && (
                   <tr>
-                    <td colSpan={6} style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
+                    <td colSpan={6} style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.875rem', fontStyle: 'italic' }}>
                       No employees found.
                     </td>
                   </tr>
@@ -244,18 +241,19 @@ export default function Employees() {
       {showAddModal && (
         <div style={{
           position: 'fixed', inset: 0,
-          background: 'rgba(0,0,0,0.7)',
-          backdropFilter: 'blur(6px)',
+          background: 'rgba(44, 48, 46, 0.3)',
+          backdropFilter: 'blur(4px)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           zIndex: 1000, padding: '1rem',
         }}>
           <div style={{
             background: 'var(--bg-card)',
-            border: '1px solid var(--border)',
-            borderRadius: 14,
+            backgroundImage: 'var(--paper-texture)',
+            borderRadius: 3,
             width: '100%', maxWidth: 560,
             maxHeight: '92vh', overflowY: 'auto',
-            boxShadow: '0 32px 64px rgba(0,0,0,0.6)',
+            boxShadow: '0 24px 48px rgba(44, 48, 46, 0.15)',
+            animation: 'inkFade 0.3s ease',
           }}>
             {/* Modal header */}
             <div style={{
@@ -264,16 +262,16 @@ export default function Employees() {
               display: 'flex', justifyContent: 'space-between', alignItems: 'center',
             }}>
               <div>
-                <h2 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>Add New Employee</h2>
-                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
+                <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.125rem', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Add New Employee</h2>
+                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.2rem', fontStyle: 'italic' }}>
                   Create an account and assign a manager
                 </p>
               </div>
               <button
                 onClick={closeModal}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: '0.25rem', borderRadius: 6, lineHeight: 0 }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: '0.25rem', borderRadius: 2, lineHeight: 0 }}
               >
-                <X size={18} />
+                <X size={18} strokeWidth={1.8} />
               </button>
             </div>
 
@@ -282,7 +280,7 @@ export default function Employees() {
 
               {/* Error banner */}
               {error && (
-                <div style={{ padding: '0.65rem 0.875rem', background: 'rgba(252,165,165,0.08)', border: '1px solid rgba(252,165,165,0.2)', borderRadius: 8, color: 'var(--danger)', fontSize: '0.8125rem' }}>
+                <div style={{ padding: '0.65rem 0.875rem', background: 'rgba(122,59,59,0.06)', border: '1px solid rgba(122,59,59,0.12)', borderRadius: 2, color: 'var(--danger)', fontSize: '0.8125rem' }}>
                   {error}
                 </div>
               )}
@@ -330,7 +328,7 @@ export default function Employees() {
                     onClick={() => setShowPwd(v => !v)}
                     style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', lineHeight: 0, padding: 0 }}
                   >
-                    {showPwd ? <EyeOff size={15} /> : <Eye size={15} />}
+                    {showPwd ? <EyeOff size={15} strokeWidth={1.8} /> : <Eye size={15} strokeWidth={1.8} />}
                   </button>
                 </div>
               </div>
@@ -367,18 +365,8 @@ export default function Employees() {
 
               {/* Actions */}
               <div style={{ display: 'flex', gap: '0.625rem', justifyContent: 'flex-end', paddingTop: '0.25rem' }}>
-                <button
-                  type="button"
-                  onClick={closeModal}
-                  style={{ padding: '0.5rem 1rem', borderRadius: 8, fontSize: '0.875rem', fontWeight: 500, cursor: 'pointer', background: 'transparent', border: '1px solid var(--border)', color: 'var(--text-secondary)' }}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  style={{ padding: '0.5rem 1.25rem', borderRadius: 8, fontSize: '0.875rem', fontWeight: 600, cursor: submitting ? 'not-allowed' : 'pointer', background: 'var(--text-primary)', color: '#0a0a0a', border: 'none', opacity: submitting ? 0.6 : 1 }}
-                >
+                <button type="button" onClick={closeModal} className="btn btn-secondary">Cancel</button>
+                <button type="submit" disabled={submitting} className="btn btn-primary" style={{ opacity: submitting ? 0.6 : 1 }}>
                   {submitting ? 'Adding…' : 'Add Employee'}
                 </button>
               </div>

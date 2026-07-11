@@ -9,25 +9,26 @@ import { Link } from 'react-router-dom'
 // ── shared helpers ────────────────────────────────────────────────────────────
 
 const statusLabel: Record<string, { label: string; color: string; bg: string }> = {
-  pending_manager: { label: 'Awaiting Manager', color: '#fcd34d', bg: 'rgba(252,211,77,0.1)' },
-  pending_admin:   { label: 'Awaiting HR',      color: '#93c5fd', bg: 'rgba(147,197,253,0.1)' },
-  approved:        { label: 'Approved',          color: '#6ee7b7', bg: 'rgba(110,231,183,0.1)' },
-  rejected:        { label: 'Rejected',          color: '#fca5a5', bg: 'rgba(252,165,165,0.1)' },
+  pending_manager: { label: 'Awaiting Manager', color: 'var(--warning)', bg: 'rgba(139,122,62,0.08)' },
+  pending_admin:   { label: 'Awaiting HR',      color: 'var(--info)',    bg: 'rgba(62,92,122,0.08)' },
+  approved:        { label: 'Approved',          color: 'var(--success)', bg: 'rgba(74,109,92,0.08)' },
+  rejected:        { label: 'Rejected',          color: 'var(--danger)',  bg: 'rgba(122,59,59,0.08)' },
 }
 
 const StatusBadge = ({ status }: { status: string }) => {
-  const s = statusLabel[status] ?? { label: status, color: '#a3a3a3', bg: 'rgba(163,163,163,0.1)' }
+  const s = statusLabel[status] ?? { label: status, color: 'var(--text-muted)', bg: 'rgba(138,141,137,0.08)' }
   return (
-    <span style={{ padding: '0.18rem 0.55rem', borderRadius: 999, fontSize: '0.7rem', fontWeight: 600, background: s.bg, color: s.color }}>
+    <span style={{ padding: '0.2rem 0.55rem', borderRadius: 2, fontSize: '0.68rem', fontWeight: 600, background: s.bg, color: s.color, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
       {s.label}
     </span>
   )
 }
 
-const MONO_COLORS = ['#f5f5f5', '#a3a3a3', '#737373', '#525252', '#404040', '#2e2e2e']
+// Ink wash monochrome palette for pie chart
+const INK_COLORS = ['#2C302E', '#4A4E4C', '#626864', '#8A8D89', '#A8ABA7', '#C5C8C4']
 
 const CardHeading = ({ children }: { children: React.ReactNode }) => (
-  <p style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '1rem' }}>
+  <p style={{ fontFamily: 'var(--font-display)', fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-primary)', letterSpacing: '0.01em', marginBottom: '1rem' }}>
     {children}
   </p>
 )
@@ -69,25 +70,25 @@ function AdminDashboard({ data }: { data: Record<string, unknown> }) {
             <CardHeading>Leave Requests — Awaiting HR Approval</CardHeading>
           </div>
           {pending.length === 0 ? (
-            <div style={{ padding: '2.5rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
+            <div style={{ padding: '2.5rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.875rem', fontStyle: 'italic' }}>
               No pending leave requests
             </div>
           ) : (
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
-                  <tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--bg-surface)' }}>
+                  <tr>
                     {['Employee', 'Type', 'Days', 'Manager Note', ''].map(h => (
-                      <th key={h} style={{ padding: '0.65rem 1rem', textAlign: h === '' ? 'right' : 'left', fontSize: '0.68rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{h}</th>
+                      <th key={h} style={{ padding: '0.65rem 1rem', textAlign: h === '' ? 'right' : 'left' }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {pending.map((l: Record<string, unknown>) => (
-                    <tr key={l.id as number} style={{ borderBottom: '1px solid var(--border)' }}>
+                    <tr key={l.id as number}>
                       <td style={{ padding: '0.75rem 1rem' }}>
                         <div style={{ fontWeight: 500, color: 'var(--text-primary)', fontSize: '0.875rem' }}>{l.employee_name as string}</div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{l.job_title as string}</div>
+                        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{l.job_title as string}</div>
                       </td>
                       <td style={{ padding: '0.75rem 1rem', color: 'var(--text-secondary)', fontSize: '0.875rem', textTransform: 'capitalize' }}>{l.type as string}</td>
                       <td style={{ padding: '0.75rem 1rem', color: 'var(--text-secondary)', fontSize: '0.875rem' }}>{l.days as number}d</td>
@@ -99,14 +100,14 @@ function AdminDashboard({ data }: { data: Record<string, unknown> }) {
                           <button
                             disabled={acting === l.id as number}
                             onClick={() => handleAdminAction(l.id as number, 'approve')}
-                            style={{ padding: '0.3rem 0.6rem', borderRadius: 6, border: 'none', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600, background: 'rgba(110,231,183,0.12)', color: '#6ee7b7', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
+                            style={{ padding: '0.3rem 0.6rem', borderRadius: 2, border: 'none', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 600, background: 'rgba(74,109,92,0.1)', color: 'var(--success)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
                           >
                             <Check size={12} /> Approve
                           </button>
                           <button
                             disabled={acting === l.id as number}
                             onClick={() => handleAdminAction(l.id as number, 'reject')}
-                            style={{ padding: '0.3rem 0.6rem', borderRadius: 6, border: 'none', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600, background: 'rgba(252,165,165,0.1)', color: '#fca5a5', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
+                            style={{ padding: '0.3rem 0.6rem', borderRadius: 2, border: 'none', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 600, background: 'rgba(122,59,59,0.08)', color: 'var(--danger)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
                           >
                             <X size={12} /> Reject
                           </button>
@@ -129,23 +130,23 @@ function AdminDashboard({ data }: { data: Record<string, unknown> }) {
                 <ResponsiveContainer width={120} height={120}>
                   <PieChart>
                     <Pie data={dept} dataKey="count" nameKey="name" cx="50%" cy="50%" outerRadius={55} innerRadius={30} paddingAngle={3}>
-                      {dept.map((_, i) => <Cell key={i} fill={MONO_COLORS[i % MONO_COLORS.length]} />)}
+                      {dept.map((_, i) => <Cell key={i} fill={INK_COLORS[i % INK_COLORS.length]} />)}
                     </Pie>
-                    <Tooltip contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 8, fontSize: '0.8rem' }} />
+                    <Tooltip contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 2, fontSize: '0.8rem', fontFamily: 'var(--font-body)' }} />
                   </PieChart>
                 </ResponsiveContainer>
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                   {dept.map((d, i) => (
                     <div key={d.name} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.78rem' }}>
-                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: MONO_COLORS[i % MONO_COLORS.length], flexShrink: 0 }} />
+                      <span style={{ width: 8, height: 8, borderRadius: 1, background: INK_COLORS[i % INK_COLORS.length], flexShrink: 0 }} />
                       <span style={{ color: 'var(--text-secondary)', flex: 1 }}>{d.name}</span>
-                      <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{d.count}</span>
+                      <span style={{ color: 'var(--text-primary)', fontWeight: 600, fontFamily: 'var(--font-display)' }}>{d.count}</span>
                     </div>
                   ))}
                 </div>
               </div>
             ) : (
-              <div style={{ color: 'var(--text-muted)', fontSize: '0.8125rem' }}>No departments yet</div>
+              <div style={{ color: 'var(--text-muted)', fontSize: '0.8125rem', fontStyle: 'italic' }}>No departments yet</div>
             )}
           </div>
 
@@ -194,23 +195,23 @@ function ManagerDashboard({ data }: { data: Record<string, unknown> }) {
             <CardHeading>Leave Requests — Awaiting Your Review</CardHeading>
           </div>
           {pending.length === 0 ? (
-            <div style={{ padding: '2.5rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.875rem' }}>No pending leave requests</div>
+            <div style={{ padding: '2.5rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.875rem', fontStyle: 'italic' }}>No pending leave requests</div>
           ) : (
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
-                  <tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--bg-surface)' }}>
+                  <tr>
                     {['Employee', 'Type', 'Days', 'Reason', ''].map(h => (
-                      <th key={h} style={{ padding: '0.65rem 1rem', textAlign: h === '' ? 'right' : 'left', fontSize: '0.68rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{h}</th>
+                      <th key={h} style={{ padding: '0.65rem 1rem', textAlign: h === '' ? 'right' : 'left' }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {pending.map((l: Record<string, unknown>) => (
-                    <tr key={l.id as number} style={{ borderBottom: '1px solid var(--border)' }}>
+                    <tr key={l.id as number}>
                       <td style={{ padding: '0.75rem 1rem' }}>
                         <div style={{ fontWeight: 500, color: 'var(--text-primary)', fontSize: '0.875rem' }}>{l.employee_name as string}</div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{l.job_title as string}</div>
+                        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{l.job_title as string}</div>
                       </td>
                       <td style={{ padding: '0.75rem 1rem', color: 'var(--text-secondary)', fontSize: '0.875rem', textTransform: 'capitalize' }}>{l.type as string}</td>
                       <td style={{ padding: '0.75rem 1rem', color: 'var(--text-secondary)', fontSize: '0.875rem' }}>{l.days as number}d</td>
@@ -222,14 +223,14 @@ function ManagerDashboard({ data }: { data: Record<string, unknown> }) {
                           <button
                             disabled={acting === l.id as number}
                             onClick={() => handleManagerAction(l.id as number, 'forward')}
-                            style={{ padding: '0.3rem 0.6rem', borderRadius: 6, border: 'none', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600, background: 'rgba(147,197,253,0.12)', color: '#93c5fd', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
+                            style={{ padding: '0.3rem 0.6rem', borderRadius: 2, border: 'none', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 600, background: 'rgba(62,92,122,0.1)', color: 'var(--info)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
                           >
                             <Check size={12} /> Forward
                           </button>
                           <button
                             disabled={acting === l.id as number}
                             onClick={() => handleManagerAction(l.id as number, 'reject')}
-                            style={{ padding: '0.3rem 0.6rem', borderRadius: 6, border: 'none', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600, background: 'rgba(252,165,165,0.1)', color: '#fca5a5', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
+                            style={{ padding: '0.3rem 0.6rem', borderRadius: 2, border: 'none', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 600, background: 'rgba(122,59,59,0.08)', color: 'var(--danger)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
                           >
                             <X size={12} /> Reject
                           </button>
@@ -248,12 +249,12 @@ function ManagerDashboard({ data }: { data: Record<string, unknown> }) {
           <div className="card">
             <CardHeading>Employees</CardHeading>
             {team.length === 0 ? (
-              <div style={{ color: 'var(--text-muted)', fontSize: '0.8125rem' }}>No employees found</div>
+              <div style={{ color: 'var(--text-muted)', fontSize: '0.8125rem', fontStyle: 'italic' }}>No employees found</div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
                 {team.map((m: Record<string, unknown>) => (
                   <div key={m.id as number} style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
-                    <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'var(--bg-surface)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', flexShrink: 0 }}>
+                    <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'rgba(44,48,46,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 600, color: 'var(--text-secondary)', flexShrink: 0, fontFamily: 'var(--font-display)' }}>
                       {(m.first_name as string)[0]}{(m.last_name as string)[0]}
                     </div>
                     <div>
@@ -288,7 +289,7 @@ function EmployeeDashboard({ data }: { data: Record<string, unknown> }) {
   const announcements = data.announcements as Array<Record<string, unknown>>
 
   const priorityColor: Record<string, string> = {
-    urgent: '#fca5a5', high: '#fcd34d', medium: '#a3a3a3', low: '#525252'
+    urgent: 'var(--danger)', high: 'var(--warning)', medium: 'var(--text-muted)', low: 'var(--text-muted)'
   }
 
   return (
@@ -304,10 +305,10 @@ function EmployeeDashboard({ data }: { data: Record<string, unknown> }) {
         <CardHeading>Leave Balance</CardHeading>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.75rem' }}>
           {balances.map(b => (
-            <div key={b.type} style={{ padding: '0.875rem', background: 'var(--bg-surface)', borderRadius: 10, border: '1px solid var(--border)' }}>
-              <div style={{ fontSize: '0.68rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.4rem' }}>{b.type}</div>
-              <div style={{ fontSize: '1.625rem', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1, letterSpacing: '-0.02em' }}>{b.balance}</div>
-              <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>days remaining</div>
+            <div key={b.type} style={{ padding: '0.875rem', background: 'rgba(44, 48, 46, 0.02)', borderRadius: 2, border: '1px solid var(--border)' }}>
+              <div style={{ fontSize: '0.65rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.4rem' }}>{b.type}</div>
+              <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.625rem', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1 }}>{b.balance}</div>
+              <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '0.2rem', fontStyle: 'italic' }}>days remaining</div>
             </div>
           ))}
         </div>
@@ -318,10 +319,10 @@ function EmployeeDashboard({ data }: { data: Record<string, unknown> }) {
         <div className="card">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
             <CardHeading>My Leave Requests</CardHeading>
-            <Link to="/leaves" style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textDecoration: 'none' }}>View all →</Link>
+            <Link to="/leaves" style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textDecoration: 'none', fontStyle: 'italic' }}>View all →</Link>
           </div>
           {myLeaves.length === 0 ? (
-            <div style={{ color: 'var(--text-muted)', fontSize: '0.8125rem' }}>No leave requests yet</div>
+            <div style={{ color: 'var(--text-muted)', fontSize: '0.8125rem', fontStyle: 'italic' }}>No leave requests yet</div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               {myLeaves.map((l: Record<string, unknown>) => (
@@ -342,18 +343,18 @@ function EmployeeDashboard({ data }: { data: Record<string, unknown> }) {
           <div className="card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
               <CardHeading>My Tasks</CardHeading>
-              <Link to="/tasks" style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textDecoration: 'none' }}>View all →</Link>
+              <Link to="/tasks" style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textDecoration: 'none', fontStyle: 'italic' }}>View all →</Link>
             </div>
             {myTasks.length === 0 ? (
-              <div style={{ color: 'var(--text-muted)', fontSize: '0.8125rem' }}>No open tasks</div>
+              <div style={{ color: 'var(--text-muted)', fontSize: '0.8125rem', fontStyle: 'italic' }}>No open tasks</div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 {myTasks.map((t: Record<string, unknown>) => (
                   <div key={t.id as number} style={{ padding: '0.5rem 0', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: priorityColor[t.priority as string] ?? '#a3a3a3', flexShrink: 0 }} />
+                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: priorityColor[t.priority as string] ?? 'var(--text-muted)', flexShrink: 0 }} />
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: '0.8125rem', color: 'var(--text-primary)', fontWeight: 500 }}>{t.title as string}</div>
-                      <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                      <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
                         Due {new Date(t.due_date as string).toLocaleDateString()}
                       </div>
                     </div>
@@ -376,13 +377,13 @@ function EmployeeDashboard({ data }: { data: Record<string, unknown> }) {
 // ── Shared: announcement list ─────────────────────────────────────────────────
 
 function AnnouncementList({ items }: { items: Array<Record<string, unknown>> }) {
-  if (!items.length) return <div style={{ color: 'var(--text-muted)', fontSize: '0.8125rem' }}>No announcements yet</div>
+  if (!items.length) return <div style={{ color: 'var(--text-muted)', fontSize: '0.8125rem', fontStyle: 'italic' }}>No announcements yet</div>
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
       {items.map(a => (
-        <div key={a.id as number} style={{ padding: '0.625rem 0.75rem', background: 'var(--bg-surface)', borderRadius: 8, border: '1px solid var(--border)' }}>
+        <div key={a.id as number} style={{ padding: '0.625rem 0.75rem', background: 'rgba(44, 48, 46, 0.02)', borderRadius: 2, border: '1px solid var(--border)' }}>
           <p style={{ fontSize: '0.8125rem', fontWeight: 500, color: 'var(--text-primary)', marginBottom: '0.2rem' }}>{a.title as string}</p>
-          <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>by {a.author as string} · {new Date(a.created_at as string).toLocaleDateString()}</p>
+          <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>by {a.author as string} · {new Date(a.created_at as string).toLocaleDateString()}</p>
         </div>
       ))}
     </div>
@@ -409,7 +410,6 @@ export default function Dashboard() {
   if (loading) return (
     <div style={{ display: 'flex', justifyContent: 'center', paddingTop: '4rem' }}>
       <div style={{ width: 28, height: 28, border: '2px solid var(--border)', borderTopColor: 'var(--text-muted)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-      <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
     </div>
   )
 
@@ -417,7 +417,7 @@ export default function Dashboard() {
     <div>
       <div className="page-header">
         <div>
-          <h1 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', fontWeight: 600, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
             {greeting}, {user?.first_name}
           </h1>
           <p className="page-subtitle">

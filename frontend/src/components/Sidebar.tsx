@@ -2,12 +2,10 @@ import { NavLink } from 'react-router-dom'
 import {
   LayoutDashboard, Users, CalendarDays,
   CheckSquare, Megaphone, MessageSquare,
-  Settings, Zap, Building2
+  Settings, Building2
 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 
-// Each item can restrict to specific roles with `roles: [...]`
-// If no `roles` key → visible to all
 const navItems = [
   { to: '/',              icon: LayoutDashboard, label: 'Dashboard',      exact: true },
   { to: '/departments',   icon: Building2,       label: 'Departments',    roles: ['admin', 'manager'] },
@@ -30,24 +28,27 @@ export default function Sidebar({ collapsed }: SidebarProps) {
   const linkStyle = (isActive: boolean): React.CSSProperties => ({
     display: 'flex',
     alignItems: 'center',
-    gap: '0.625rem',
-    padding: collapsed ? '0.55rem' : '0.55rem 0.75rem',
-    borderRadius: 7,
+    gap: '0.75rem',
+    padding: collapsed ? '0.625rem' : '0.625rem 0.875rem',
+    borderRadius: 2,
     textDecoration: 'none',
     fontSize: '0.8125rem',
     fontWeight: isActive ? 600 : 400,
     justifyContent: collapsed ? 'center' : 'flex-start',
-    transition: 'color 0.12s, background 0.12s',
+    transition: 'all 0.3s ease',
     color: isActive ? 'var(--text-primary)' : 'var(--text-muted)',
-    background: isActive ? 'rgba(255,255,255,0.07)' : 'transparent',
+    background: isActive ? 'rgba(44, 48, 46, 0.06)' : 'transparent',
+    letterSpacing: '0.01em',
+    position: 'relative' as const,
   })
 
   return (
     <aside style={{
-      width: collapsed ? 60 : 220,
-      transition: 'width 0.25s ease',
+      width: collapsed ? 60 : 230,
+      transition: 'width 0.3s ease',
       background: 'var(--bg-surface)',
-      borderRight: '1px solid var(--border)',
+      backgroundImage: 'var(--paper-texture)',
+      borderRight: '1px solid rgba(60, 56, 48, 0.08)',
       display: 'flex',
       flexDirection: 'column',
       flexShrink: 0,
@@ -55,23 +56,25 @@ export default function Sidebar({ collapsed }: SidebarProps) {
     }}>
       {/* Logo */}
       <div style={{
-        padding: collapsed ? '1.125rem 0' : '1.125rem 1.125rem',
-        display: 'flex', alignItems: 'center', gap: '0.625rem',
-        borderBottom: '1px solid var(--border)',
-        height: 60,
+        padding: collapsed ? '1.25rem 0' : '1.25rem',
+        display: 'flex', alignItems: 'center', gap: '0.75rem',
+        borderBottom: '1px solid rgba(60, 56, 48, 0.08)',
+        height: 64,
         justifyContent: collapsed ? 'center' : 'flex-start',
       }}>
+        {/* Ink brush circle */}
         <div style={{
-          width: 30, height: 30, borderRadius: 8, flexShrink: 0,
-          background: 'var(--text-primary)',
+          width: 32, height: 32, borderRadius: '50%', flexShrink: 0,
+          background: 'var(--accent)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
+          boxShadow: '0 1px 4px rgba(44,48,46,0.2)',
         }}>
-          <Zap size={15} color="#0a0a0a" fill="#0a0a0a" />
+          <span style={{ color: 'var(--bg-primary)', fontFamily: 'var(--font-display)', fontSize: '1rem', fontWeight: 700, lineHeight: 1 }}>P</span>
         </div>
         {!collapsed && (
           <div>
-            <div style={{ fontWeight: 700, fontSize: '0.9375rem', color: 'var(--text-primary)', whiteSpace: 'nowrap', letterSpacing: '-0.01em' }}>Peraka</div>
-            <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', letterSpacing: '0.03em', textTransform: 'uppercase' }}>
+            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '1.0625rem', color: 'var(--text-primary)', whiteSpace: 'nowrap', letterSpacing: '-0.01em' }}>Peraka</div>
+            <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500 }}>
               {user?.role === 'admin' ? 'Admin Panel' : user?.role === 'manager' ? 'Manager Portal' : 'Employee Portal'}
             </div>
           </div>
@@ -79,12 +82,12 @@ export default function Sidebar({ collapsed }: SidebarProps) {
       </div>
 
       {/* Nav */}
-      <nav style={{ flex: 1, padding: '0.5rem', display: 'flex', flexDirection: 'column', gap: 1 }}>
+      <nav style={{ flex: 1, padding: '0.625rem', display: 'flex', flexDirection: 'column', gap: 2 }}>
         {visible.map(({ to, icon: Icon, label, exact }) => (
           <NavLink key={to} to={to} end={exact} style={({ isActive }) => linkStyle(isActive)}>
             {({ isActive }) => (
               <>
-                <Icon size={16} strokeWidth={isActive ? 2.5 : 2} />
+                <Icon size={16} strokeWidth={isActive ? 2.2 : 1.8} />
                 {!collapsed && <span style={{ whiteSpace: 'nowrap' }}>{label}</span>}
               </>
             )}
@@ -92,10 +95,15 @@ export default function Sidebar({ collapsed }: SidebarProps) {
         ))}
       </nav>
 
+      {/* Decorative ink brush stroke divider */}
+      <div style={{ padding: '0 0.625rem', margin: '0.25rem 0' }}>
+        <div style={{ height: 1, background: 'linear-gradient(90deg, transparent, rgba(60,56,48,0.12), transparent)' }} />
+      </div>
+
       {/* Settings */}
-      <div style={{ padding: '0.5rem', borderTop: '1px solid var(--border)' }}>
+      <div style={{ padding: '0.625rem' }}>
         <NavLink to="/settings" style={({ isActive }) => linkStyle(isActive)}>
-          <Settings size={16} />
+          <Settings size={16} strokeWidth={1.8} />
           {!collapsed && <span>Settings</span>}
         </NavLink>
       </div>
