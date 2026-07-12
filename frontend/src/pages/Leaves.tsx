@@ -46,6 +46,7 @@ const labelStyle: React.CSSProperties = {
   fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em',
 }
 
+const today = new Date().toISOString().split('T')[0]
 const defaultForm = { type: 'sick', start_date: '', end_date: '', reason: '' }
 
 export default function Leaves() {
@@ -82,6 +83,7 @@ export default function Leaves() {
     e.preventDefault()
     setError('')
     if (!form.start_date || !form.end_date) { setError('Please select dates'); return }
+    if (form.start_date < today) { setError('Start date cannot be in the past'); return }
     if (new Date(form.end_date) < new Date(form.start_date)) { setError('End date must be after start date'); return }
     setSubmitting(true)
     try {
@@ -269,7 +271,7 @@ export default function Leaves() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.875rem' }}>
                 <div>
                   <label style={labelStyle}>Start Date</label>
-                  <input required type="date" value={form.start_date} onChange={e => setForm(f => ({ ...f, start_date: e.target.value }))} style={inputStyle} />
+                  <input required type="date" value={form.start_date} min={today} onChange={e => setForm(f => ({ ...f, start_date: e.target.value }))} style={inputStyle} />
                 </div>
                 <div>
                   <label style={labelStyle}>End Date</label>

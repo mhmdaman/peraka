@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Plus, CheckSquare, Clock, AlignLeft, Calendar, X } from 'lucide-react'
+import { Plus, CheckSquare, Clock, AlignLeft, Calendar, X, Trash2 } from 'lucide-react'
 import api from '../lib/api'
 import { useAuth } from '../contexts/AuthContext'
 
@@ -92,7 +92,17 @@ export default function Tasks() {
 
   const handleStatusUpdate = async (id: number, status: string) => {
     try {
-      await api.put(`/tasks/${id}/status`, { status })
+      await api.patch(`/tasks/${id}/status`, { status })
+      fetchTasks()
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  const handleDelete = async (id: number) => {
+    if (!confirm('Delete this completed task?')) return
+    try {
+      await api.delete(`/tasks/${id}`)
       fetchTasks()
     } catch (err) {
       console.error(err)
@@ -165,11 +175,21 @@ export default function Tasks() {
                 )}
               </div>
 
-              {/* Minimal status transition buttons */}
+              {/* Status transition buttons */}
               <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
                 {status !== 'pending' && <button onClick={() => handleStatusUpdate(task.id, 'pending')} className="btn-secondary" style={{ flex: 1, fontSize: '0.7rem', padding: '0.25rem', borderRadius: 2 }}>To Pending</button>}
                 {status !== 'in-progress' && <button onClick={() => handleStatusUpdate(task.id, 'in-progress')} className="btn-secondary" style={{ flex: 1, fontSize: '0.7rem', padding: '0.25rem', borderRadius: 2 }}>To Progress</button>}
                 {status !== 'completed' && <button onClick={() => handleStatusUpdate(task.id, 'completed')} className="btn-secondary" style={{ flex: 1, fontSize: '0.7rem', padding: '0.25rem', borderRadius: 2 }}>To Complete</button>}
+                {status === 'completed' && user?.role === 'admin' && (
+                  <button
+                    onClick={() => handleDelete(task.id)}
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.25rem', flex: 1, fontSize: '0.7rem', padding: '0.25rem', borderRadius: 2, border: '1px solid rgba(252,165,165,0.3)', background: 'rgba(252,165,165,0.06)', color: '#fca5a5', cursor: 'pointer' }}
+                    onMouseEnter={e => { e.currentTarget.style.background = 'rgba(252,165,165,0.14)' }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'rgba(252,165,165,0.06)' }}
+                  >
+                    <Trash2 size={11} /> Delete
+                  </button>
+                )}
               </div>
             </div>
           ))}

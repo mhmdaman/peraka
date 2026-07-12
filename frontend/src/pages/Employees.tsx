@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Search, Plus, Filter, MoreVertical, X, Eye, EyeOff } from 'lucide-react'
+import { Search, Plus, Filter, MoreVertical, X, Eye, EyeOff, Pencil } from 'lucide-react'
 import api from '../lib/api'
 import { useAuth } from '../contexts/AuthContext'
 
@@ -70,6 +70,13 @@ export default function Employees() {
   const [managers, setManagers]       = useState<Manager[]>([])
   const [showPwd, setShowPwd]         = useState(false)
 
+  // Edit employee
+  const [editTarget, setEditTarget]   = useState<(Employee & { role_id?: string; department_id?: string; phone?: string; date_of_joining?: string }) | null>(null)
+  const [editForm, setEditForm]       = useState({ first_name: '', last_name: '', email: '', job_title: '', phone: '', role_id: '', department_id: '', date_of_joining: '' })
+  const [editError, setEditError]     = useState('')
+  const [editSubmitting, setEditSubmitting] = useState(false)
+  const [openMenuId, setOpenMenuId]   = useState<number | null>(null)
+
   const fetchEmployees = async () => {
     try {
       setLoading(true)
@@ -129,6 +136,47 @@ export default function Employees() {
       setError(msg || 'Failed to create employee')
     } finally {
       setSubmitting(false)
+    }
+  }
+
+  const openEdit = async (emp: Employee) => {
+    setOpenMenuId(null)
+    try {
+      const res = await api.get(`/employees/${emp.id}`)
+      const e = res.data.data
+      setEditForm({
+        first_name: e.first_name ?? '',
+        last_name: e.last_name ?? '',
+        email: e.email ?? '',
+        job_title: e.job_title ?? '',
+        phone: e.phone ?? '',
+        role_id: e.role_id?.toString() ?? '',
+        department_id: e.department_id?.toString() ?? '',
+        date_of_joining: e.date_of_joining ? e.date_of_joining.slice(0, 10) : '',
+      })
+    } catch {
+      setEditForm({ first_name: emp.first_name, last_name: emp.last_name, email: emp.email, job_title: emp.job_title, phone: '', role_id: '', department_id: '', date_of_joining: '' })
+    }
+    setEditTarget(emp as any)
+    setEditError('')
+  }
+
+  const closeEdit = () => { setEditTarget(null); setEditError('') }
+
+  const handleEdit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!editTarget) return
+    setEditError('')
+    setEditSubmitting(true)
+    try {
+      await api.put(`/employees/${editTarget.id}`, editForm)
+      closeEdit()
+      fetchEmployees()
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
+      setEditError(msg || 'Failed to update employee')
+    } finally {
+      setEditSubmitting(false)
     }
   }
 
@@ -217,10 +265,25 @@ export default function Employees() {
                         {emp.status}
                       </span>
                     </td>
-                    <td style={{ padding: '0.875rem 1.25rem', textAlign: 'right' }}>
-                      <button style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.25rem', borderRadius: 2 }}>
+                    <td style={{ padding: '0.875rem 1.25rem', textAlign: 'right', position: 'relative' }}>
+                      <button
+                        onClick={() => setOpenMenuId(openMenuId === emp.id ? null : emp.id)}
+                        style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.25rem', borderRadius: 2 }}
+                      >
                         <MoreVertical size={15} strokeWidth={1.8} />
                       </button>
+                      {openMenuId === emp.id && (
+                        <div style={{ position: 'absolute', right: '1rem', top: '100%', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 8, boxShadow: '0 8px 24px rgba(0,0,0,0.15)', zIndex: 50, minWidth: 120, overflow: 'hidden' }}>
+                          <button
+                            onClick={() => openEdit(emp)}
+                            style={{ width: '100%', padding: '0.6rem 1rem', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.8125rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem', textAlign: 'left' }}
+                            onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-surface)')}
+                            onMouseLeave={e => (e.currentTarget.style.background = 'none')}
+                          >
+                            <Pencil size={13} /> Edit Employee
+                          </button>
+                        </div>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -236,6 +299,76 @@ export default function Employees() {
           )}
         </div>
       </div>
+
+      {/* ── Edit Employee Modal ── */}
+      {editTarget && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(44, 48, 46, 0.35)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
+          <div style={{ background: 'var(--bg-card)', backgroundImage: 'var(--paper-texture)', borderRadius: 3, width: '100%', maxWidth: 560, maxHeight: '92vh', overflowY: 'auto', boxShadow: '0 24px 48px rgba(44, 48, 46, 0.15)', animation: 'inkFade 0.3s ease' }}>
+            <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.125rem', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Edit Employee</h2>
+                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.2rem', fontStyle: 'italic' }}>{editTarget.first_name} {editTarget.last_name}</p>
+              </div>
+              <button onClick={closeEdit} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: '0.25rem', lineHeight: 0 }}>
+                <X size={18} strokeWidth={1.8} />
+              </button>
+            </div>
+            <form onSubmit={handleEdit} style={{ padding: '1.25rem 1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {editError && <div style={{ padding: '0.65rem 0.875rem', background: 'rgba(122,59,59,0.06)', border: '1px solid rgba(122,59,59,0.12)', borderRadius: 2, color: 'var(--danger)', fontSize: '0.8125rem' }}>{editError}</div>}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.875rem' }}>
+                <div>
+                  <label style={labelStyle}>First Name *</label>
+                  <input required name="first_name" value={editForm.first_name} onChange={e => setEditForm(f => ({ ...f, first_name: e.target.value }))} style={inputStyle} />
+                </div>
+                <div>
+                  <label style={labelStyle}>Last Name *</label>
+                  <input required name="last_name" value={editForm.last_name} onChange={e => setEditForm(f => ({ ...f, last_name: e.target.value }))} style={inputStyle} />
+                </div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.875rem' }}>
+                <div>
+                  <label style={labelStyle}>Email *</label>
+                  <input required type="email" value={editForm.email} onChange={e => setEditForm(f => ({ ...f, email: e.target.value }))} style={inputStyle} />
+                </div>
+                <div>
+                  <label style={labelStyle}>Phone</label>
+                  <input value={editForm.phone} onChange={e => setEditForm(f => ({ ...f, phone: e.target.value }))} style={inputStyle} />
+                </div>
+              </div>
+              <div>
+                <label style={labelStyle}>Job Title *</label>
+                <input required value={editForm.job_title} onChange={e => setEditForm(f => ({ ...f, job_title: e.target.value }))} style={inputStyle} />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.875rem' }}>
+                <div>
+                  <label style={labelStyle}>Role</label>
+                  <select value={editForm.role_id} onChange={e => setEditForm(f => ({ ...f, role_id: e.target.value }))} style={inputStyle}>
+                    <option value="">Select role…</option>
+                    {roles.map(r => <option key={r.id} value={r.id}>{r.name.charAt(0).toUpperCase() + r.name.slice(1)}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label style={labelStyle}>Department</label>
+                  <select value={editForm.department_id} onChange={e => setEditForm(f => ({ ...f, department_id: e.target.value }))} style={inputStyle}>
+                    <option value="">Select department…</option>
+                    {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label style={labelStyle}>Date of Joining</label>
+                <input type="date" value={editForm.date_of_joining} onChange={e => setEditForm(f => ({ ...f, date_of_joining: e.target.value }))} style={inputStyle} />
+              </div>
+              <div style={{ display: 'flex', gap: '0.625rem', justifyContent: 'flex-end', paddingTop: '0.25rem' }}>
+                <button type="button" onClick={closeEdit} className="btn btn-secondary">Cancel</button>
+                <button type="submit" disabled={editSubmitting} className="btn btn-primary" style={{ opacity: editSubmitting ? 0.6 : 1 }}>
+                  {editSubmitting ? 'Saving…' : 'Save Changes'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* ── Add Employee Modal ── */}
       {showAddModal && (

@@ -32,12 +32,18 @@ export default function Login() {
       minHeight: '100vh',
       background: 'transparent',
       display: 'flex',
+      flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center',
       padding: '1rem',
       fontFamily: 'var(--font-body)',
       position: 'relative'
     }}>
+
+      {/* Company Logo */}
+      <div style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <img src="/E9E90172-BF75-4D65-B3DE-C51789596691_4_5005_c.jpeg" alt="Peraka Logo" style={{ height: 100, width: 'auto', objectFit: 'contain', filter: 'grayscale(100%) contrast(1.15) sepia(8%) drop-shadow(0 2px 8px rgba(44,48,46,0.12))', opacity: 0.92 }} />
+      </div>
 
       <div style={{
         width: '100%',
@@ -53,7 +59,7 @@ export default function Login() {
         zIndex: 1,
         border: '1px solid var(--border)'
       }}>
-        
+
         {/* Left Side: Form */}
         <div style={{
           width: '50%',
@@ -158,12 +164,8 @@ export default function Login() {
               Forgot password?
             </a>
           </div>
-          
-          {/* Hidden but accessible demo creds for easy testing */}
-          <div style={{ position: 'absolute', bottom: '1rem', left: '1rem', opacity: 0.2, transition: 'opacity 0.2s', fontSize: '0.65rem' }} onMouseEnter={e => e.currentTarget.style.opacity = '1'} onMouseLeave={e => e.currentTarget.style.opacity = '0.2'}>
-            Admin: admin@company.com / Admin@123<br/>
-            (Hover to see demo creds)
-          </div>
+
+
         </div>
 
         {/* Right Side: Image Graphic */}
@@ -174,16 +176,16 @@ export default function Login() {
           overflow: 'hidden'
         }}>
           {/* Sumi-e / Ink Wash image background */}
-          <img 
-            src="https://images.unsplash.com/photo-1547826039-bfc35e0f1ea8?q=80&w=2000&auto=format&fit=crop" 
-            alt="Ink Wash Art" 
-            style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'grayscale(100%) contrast(1.2) sepia(10%)' }} 
+          <img
+            src="https://images.unsplash.com/photo-1547826039-bfc35e0f1ea8?q=80&w=2000&auto=format&fit=crop"
+            alt="Ink Wash Art"
+            style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'grayscale(100%) contrast(1.2) sepia(10%)' }}
           />
           {/* Paper texture overlay on image */}
           <div style={{ position: 'absolute', inset: 0, backgroundImage: 'var(--paper-texture)', mixBlendMode: 'multiply', opacity: 0.8 }} />
         </div>
       </div>
-      
+
     </div>
   )
 }

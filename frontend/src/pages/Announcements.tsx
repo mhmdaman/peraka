@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Plus, Megaphone, Trash2 } from 'lucide-react'
+import { Plus, Megaphone, Trash2, Pencil, X } from 'lucide-react'
 import api from '../lib/api'
 import { useAuth } from '../contexts/AuthContext'
 
@@ -46,6 +46,12 @@ export default function Announcements() {
   const [form, setForm] = useState({ title: '', content: '' })
   const [error, setError] = useState('')
 
+  // Edit modal
+  const [editTarget, setEditTarget] = useState<Announcement | null>(null)
+  const [editForm, setEditForm] = useState({ title: '', content: '' })
+  const [editError, setEditError] = useState('')
+  const [editSubmitting, setEditSubmitting] = useState(false)
+
   const fetchAnnouncements = async () => {
     try {
       setLoading(true)
@@ -85,6 +91,28 @@ export default function Announcements() {
     }
   }
 
+  const openEdit = (a: Announcement) => {
+    setEditTarget(a)
+    setEditForm({ title: a.title, content: a.content })
+    setEditError('')
+  }
+
+  const handleEdit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!editTarget) return
+    setEditError('')
+    setEditSubmitting(true)
+    try {
+      await api.put(`/announcements/${editTarget.id}`, editForm)
+      setEditTarget(null)
+      fetchAnnouncements()
+    } catch (err: any) {
+      setEditError(err.response?.data?.message || 'Failed to update announcement')
+    } finally {
+      setEditSubmitting(false)
+    }
+  }
+
   return (
     <div>
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -120,9 +148,26 @@ export default function Announcements() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
                   <h3 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>{announcement.title}</h3>
                   {canManage && (
-                    <button onClick={() => handleDelete(announcement.id)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.25rem' }}>
-                      <Trash2 size={16} />
-                    </button>
+                    <div style={{ display: 'flex', gap: '0.25rem' }}>
+                      <button
+                        onClick={() => openEdit(announcement)}
+                        title="Edit"
+                        style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.25rem', borderRadius: 4, transition: 'color 0.15s' }}
+                        onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-primary)')}
+                        onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}
+                      >
+                        <Pencil size={15} />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(announcement.id)}
+                        title="Delete"
+                        style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.25rem', borderRadius: 4, transition: 'color 0.15s' }}
+                        onMouseEnter={e => (e.currentTarget.style.color = '#fca5a5')}
+                        onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
                   )}
                 </div>
                 <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', fontSize: '0.8125rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
@@ -139,13 +184,48 @@ export default function Announcements() {
         )}
       </div>
 
+      {/* ── Edit Announcement Modal ── */}
+      {editTarget && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: '1rem' }}>
+          <div style={{ background: 'var(--bg-card)', backgroundImage: 'var(--paper-texture)', borderRadius: 14, width: '100%', maxWidth: 500, overflow: 'hidden', boxShadow: '0 24px 48px rgba(0,0,0,0.25)' }}>
+            <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <h2 style={{ fontSize: '1.125rem', fontWeight: 600, margin: 0, color: 'var(--text-primary)' }}>Edit Announcement</h2>
+                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>Update the title or content</p>
+              </div>
+              <button onClick={() => setEditTarget(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', lineHeight: 0 }}>
+                <X size={18} />
+              </button>
+            </div>
+            <form onSubmit={handleEdit} style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {editError && <div style={{ padding: '0.65rem 0.875rem', background: 'rgba(252,165,165,0.08)', border: '1px solid rgba(252,165,165,0.2)', borderRadius: 8, color: '#fca5a5', fontSize: '0.8125rem' }}>{editError}</div>}
+              <div>
+                <label style={labelStyle}>Title</label>
+                <input required style={inputStyle} value={editForm.title} onChange={e => setEditForm(f => ({ ...f, title: e.target.value }))} />
+              </div>
+              <div>
+                <label style={labelStyle}>Content</label>
+                <textarea required style={{ ...inputStyle, minHeight: 140, resize: 'vertical' }} value={editForm.content} onChange={e => setEditForm(f => ({ ...f, content: e.target.value }))} />
+              </div>
+              <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', paddingTop: '0.25rem' }}>
+                <button type="button" onClick={() => setEditTarget(null)} style={{ padding: '0.5rem 1rem', borderRadius: 8, fontSize: '0.875rem', fontWeight: 500, cursor: 'pointer', background: 'transparent', border: '1px solid var(--border)', color: 'var(--text-secondary)' }}>Cancel</button>
+                <button type="submit" disabled={editSubmitting} style={{ padding: '0.5rem 1.25rem', borderRadius: 8, fontSize: '0.875rem', fontWeight: 600, cursor: editSubmitting ? 'not-allowed' : 'pointer', background: 'var(--text-primary)', color: '#0a0a0a', border: 'none', opacity: editSubmitting ? 0.6 : 1 }}>
+                  {editSubmitting ? 'Saving…' : 'Save Changes'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── New Announcement Modal ── */}
       {showModal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: '1rem' }}>
           <div style={{ background: 'var(--bg-primary)', borderRadius: 16, width: '100%', maxWidth: 500, overflow: 'hidden', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
             <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h2 style={{ fontSize: '1.125rem', fontWeight: 600, margin: 0 }}>New Announcement</h2>
               <button onClick={() => setShowModal(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
-                &times;
+                <X size={18} />
               </button>
             </div>
             

@@ -12,6 +12,13 @@ exports.apply = async (req, res) => {
   try {
     const d1 = new Date(start_date);
     const d2 = new Date(end_date);
+
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    if (d1 < todayStart) {
+      return res.status(400).json({ success: false, message: 'Start date cannot be in the past' });
+    }
+
     const days = Math.ceil((d2 - d1) / (1000 * 60 * 60 * 24)) + 1;
 
     const balanceRecord = await prisma.leaveBalance.findUnique({
