@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router-dom'
 import {
   LayoutDashboard, Users, CalendarDays,
-  CheckSquare, Megaphone, MessageSquare,
+  CheckSquare, Megaphone,
   Settings, Building2
 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
@@ -13,7 +13,6 @@ const navItems = [
   { to: '/leaves',        icon: CalendarDays,    label: 'Leaves' },
   { to: '/tasks',         icon: CheckSquare,     label: 'Tasks' },
   { to: '/announcements', icon: Megaphone,       label: 'Announcements' },
-  { to: '/chat',          icon: MessageSquare,   label: 'Chat' },
 ]
 
 interface SidebarProps { collapsed: boolean }

@@ -189,19 +189,6 @@ CREATE TABLE IF NOT EXISTS notifications (
 );
 
 -- ============================================
--- 12. Chats
--- ============================================
-CREATE TABLE IF NOT EXISTS chats (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    sender_id INT NOT NULL,
-    receiver_id INT NOT NULL,
-    message TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (sender_id) REFERENCES employees(id) ON DELETE CASCADE,
-    FOREIGN KEY (receiver_id) REFERENCES employees(id) ON DELETE CASCADE
-);
-
--- ============================================
 -- 13. Audit Logs (Immutable)
 -- ============================================
 CREATE TABLE IF NOT EXISTS audit_logs (

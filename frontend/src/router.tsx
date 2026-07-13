@@ -13,7 +13,6 @@ const Payroll = lazy(() => import('./pages/Payroll'))
 const Tasks = lazy(() => import('./pages/Tasks'))
 const Announcements = lazy(() => import('./pages/Announcements'))
 const Departments = lazy(() => import('./pages/Departments'))
-const Chat = lazy(() => import('./pages/Chat'))
 const Settings = lazy(() => import('./pages/Settings'))
 
 const PageLoader = () => (
@@ -65,7 +64,6 @@ export const router = createBrowserRouter([
       { path: 'tasks', element: <Suspense fallback={<PageLoader />}><Tasks /></Suspense> },
       { path: 'announcements', element: <Suspense fallback={<PageLoader />}><Announcements /></Suspense> },
       { path: 'departments', element: <Suspense fallback={<PageLoader />}><Departments /></Suspense> },
-      { path: 'chat', element: <Suspense fallback={<PageLoader />}><Chat /></Suspense> },
       { path: 'settings', element: <Suspense fallback={<PageLoader />}><Settings /></Suspense> },
     ],
   },

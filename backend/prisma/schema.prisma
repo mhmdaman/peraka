@@ -69,9 +69,6 @@ model Employee {
   announcements   Announcement[]
   notifications   Notification[]
   
-  chats_sent      Chat[] @relation("ChatSender")
-  chats_received  Chat[] @relation("ChatReceiver")
-  
   audit_logs      AuditLog[]
 
   @@map("employees")
@@ -201,19 +198,6 @@ model Notification {
   employee    Employee @relation(fields: [employee_id], references: [id], onDelete: Cascade)
 
   @@map("notifications")
-}
-
-model Chat {
-  id          Int      @id @default(autoincrement())
-  sender_id   Int
-  receiver_id Int
-  message     String   @db.Text
-  created_at  DateTime @default(now())
-
-  sender      Employee @relation("ChatSender", fields: [sender_id], references: [id], onDelete: Cascade)
-  receiver    Employee @relation("ChatReceiver", fields: [receiver_id], references: [id], onDelete: Cascade)
-
-  @@map("chats")
 }
 
 model AuditLog {

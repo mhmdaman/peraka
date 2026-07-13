@@ -16,7 +16,6 @@ const taskRoutes = require('./routes/tasks');
 const announcementRoutes = require('./routes/announcements');
 const notificationRoutes = require('./routes/notifications');
 const dashboardRoutes = require('./routes/dashboard');
-const chatRoutes = require('./routes/chat');
 
 const app = express();
 const server = http.createServer(app);
@@ -45,47 +44,9 @@ app.use('/api/tasks', taskRoutes);
 app.use('/api/announcements', announcementRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/dashboard', dashboardRoutes);
-app.use('/api/chat', chatRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => res.json({ status: 'ok', timestamp: new Date() }));
-
-// Socket.io — real-time chat
-const onlineUsers = new Map(); // employeeId -> socketId
-
-io.on('connection', (socket) => {
-  console.log(`Socket connected: ${socket.id}`);
-
-  socket.on('join', (employeeId) => {
-    onlineUsers.set(String(employeeId), socket.id);
-    io.emit('online_users', Array.from(onlineUsers.keys()));
-  });
-
-  socket.on('send_message', async ({ senderId, receiverId, message }) => {
-    try {
-      const chat = await prisma.chat.create({
-        data: {
-          sender_id: parseInt(senderId),
-          receiver_id: parseInt(receiverId),
-          message: message
-        }
-      });
-      const receiverSocket = onlineUsers.get(String(receiverId));
-      const payload = { senderId, receiverId, message, createdAt: chat.created_at };
-      if (receiverSocket) io.to(receiverSocket).emit('receive_message', payload);
-      socket.emit('receive_message', payload); // echo to sender
-    } catch (error) {
-      console.error('Error saving chat message:', error);
-    }
-  });
-
-  socket.on('disconnect', () => {
-    for (const [empId, sockId] of onlineUsers.entries()) {
-      if (sockId === socket.id) { onlineUsers.delete(empId); break; }
-    }
-    io.emit('online_users', Array.from(onlineUsers.keys()));
-  });
-});
 
 // Global error handler
 app.use((err, req, res, _next) => {
@@ -96,4 +57,4 @@ app.use((err, req, res, _next) => {
 const PORT = process.env.PORT || 5001;
 server.listen(PORT, () => console.log(`🚀 Peraka API running on http://localhost:${PORT}`));
 
-module.exports = { io };
+module.exports = { };
